@@ -1,18 +1,36 @@
 import 'package:flutter/material.dart';
 
-class Aiagent extends StatefulWidget {
-  const Aiagent({super.key});
-
-  @override
-  State<Aiagent> createState() => _AiagentState();
-}
-
-class _AiagentState extends State<Aiagent> {
+class Aiagent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return Scaffold(
       body: Center(
-        child: Text("Ai"),
+        child: _buildAISection(),
+      ),
+    );
+  }
+
+  Widget _buildAISection() {
+    return Container(
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [BoxShadow(color: Colors.grey.shade300, blurRadius: 5)],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            "AI Assistant",
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: 10),
+          ElevatedButton(
+            onPressed: () {},
+            child: Text("Talk to Our AI Assistant"),
+          ),
+        ],
       ),
     );
   }
