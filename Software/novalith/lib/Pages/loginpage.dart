@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:novalith/Pages/homepage.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -109,7 +110,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: () {
-                            //Navigator.push(context, MaterialPageRoute(builder: (context)=> const Homepage()));
+                            Navigator.push(context, MaterialPageRoute(builder: (context)=> const Homepage()));
                           },
                           style: ElevatedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 14),
