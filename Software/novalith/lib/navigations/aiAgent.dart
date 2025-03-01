@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 class Aiagent extends StatelessWidget {
+  const Aiagent({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -12,7 +14,7 @@ class Aiagent extends StatelessWidget {
 
   Widget _buildAISection() {
     return Container(
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -21,14 +23,14 @@ class Aiagent extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
+          const Text(
             "AI Assistant",
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           ElevatedButton(
             onPressed: () {},
-            child: Text("Talk to Our AI Assistant"),
+            child: const Text("Talk to Our AI Assistant"),
           ),
         ],
       ),

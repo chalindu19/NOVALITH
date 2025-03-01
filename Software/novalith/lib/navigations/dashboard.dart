@@ -1,21 +1,23 @@
 import 'package:flutter/material.dart';
 
 class Dashboard extends StatelessWidget {
+  const Dashboard({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            const Text(
               "Current Status",
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             Container(
-              padding: EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
@@ -32,7 +34,7 @@ class Dashboard extends StatelessWidget {
                       _buildStatusCard("Maternal Heart Rate", "78 BPM"),
                     ],
                   ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -40,7 +42,7 @@ class Dashboard extends StatelessWidget {
                       _buildStatusCard("Temperature", "37.2 °C"),
                     ],
                   ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -51,11 +53,11 @@ class Dashboard extends StatelessWidget {
                 ],
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             _buildAISection(),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             _buildDoctorContact(),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             _buildDeviceInfo(),
           ],
         ),
@@ -66,7 +68,7 @@ class Dashboard extends StatelessWidget {
   Widget _buildStatusCard(String title, String value) {
     return Container(
       width: 150,
-      padding: EdgeInsets.all(12),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.blueAccent.shade100,
         borderRadius: BorderRadius.circular(10),
@@ -75,13 +77,13 @@ class Dashboard extends StatelessWidget {
         children: [
           Text(
             title,
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
             textAlign: TextAlign.center,
           ),
-          SizedBox(height: 5),
+          const SizedBox(height: 5),
           Text(
             value,
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
         ],
       ),
@@ -90,7 +92,7 @@ class Dashboard extends StatelessWidget {
 
   Widget _buildAISection() {
     return Container(
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -98,14 +100,14 @@ class Dashboard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Text(
+          const Text(
             "AI Assistant",
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           ElevatedButton(
             onPressed: () {},
-            child: Text("Talk to Our AI Assistant"),
+            child: const Text("Talk to Our AI Assistant"),
           ),
         ],
       ),
@@ -114,7 +116,7 @@ class Dashboard extends StatelessWidget {
 
   Widget _buildDoctorContact() {
     return Container(
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -122,14 +124,14 @@ class Dashboard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Text(
+          const Text(
             "Dr. Sarah Johnson",
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           ElevatedButton(
             onPressed: () {},
-            child: Text("Start Chat"),
+            child: const Text("Start Chat"),
           ),
         ],
       ),
@@ -138,13 +140,13 @@ class Dashboard extends StatelessWidget {
 
   Widget _buildDeviceInfo() {
     return Container(
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [BoxShadow(color: Colors.grey.shade300, blurRadius: 5)],
       ),
-      child: Column(
+      child: const Column(
         children: [
           Text(
             "Device ID: AMR-2024-X892",
