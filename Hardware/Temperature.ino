@@ -22,6 +22,11 @@ void initWiFi() {
   Serial.println(WiFi.localIP());
   Serial.println();
 }
+// compile the code.
+void tokenStatusCallback(FirebaseAuthTokenInfo info) {
+  Serial.printf("Token Info: type = %s, status = %s\n",
+                info.auth_type.c_str(), info.status.c_str());
+}
 
 void setup() {
   Serial.begin(9600);
