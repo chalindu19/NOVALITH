@@ -14,7 +14,10 @@ FirebaseConfig config;
 
 void initWiFi() {
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-  Serial.print("Connecting to WiFi ..");
+  //Serial.print("Connecting to WiFi ..");
+  Serial.print("Connecting to WiFi: ");
+  Serial.println(WIFI_SSID);
+
   while (WiFi.status() != WL_CONNECTED) {
     Serial.print('.');
     delay(1000);
