@@ -3,9 +3,12 @@
 #define LO_MINUS 3        
 #define DELAY_TIME 10      
 #define ECG_THRESHOLD 500  
-#define SPIKE_THRESHOLD 100  // Change in signal that indicates a spike
+#define SPIKE_THRESHOLD 100  
+#define FILTER_WINDOW 5  // Moving Average Window
 
-int lastECGValue = 0;  
+int lastECGValue = 0;
+int ecgReadings[FILTER_WINDOW] = {0};  
+int index = 0;  
 
 void setup() {
     Serial.begin(115200);
@@ -14,13 +17,23 @@ void setup() {
     pinMode(LO_MINUS, INPUT);
 }
 
+int getFilteredECG() {
+    ecgReadings[index] = analogRead(AD8232_SIGNAL);
+    index = (index + 1) % FILTER_WINDOW;  
+
+    int sum = 0;
+    for (int i = 0; i < FILTER_WINDOW; i++) {
+        sum += ecgReadings[i];
+    }
+    return sum / FILTER_WINDOW;
+}
+
 void loop() {
-    int ecgValue = analogRead(AD8232_SIGNAL);
+    int ecgValue = getFilteredECG();
     
-    Serial.print("ECG Value: ");
+    Serial.print("Filtered ECG Value: ");
     Serial.println(ecgValue);
 
-    // Detect sudden spikes
     if (abs(ecgValue - lastECGValue) > SPIKE_THRESHOLD) {
         Serial.println("WARNING: Sudden Heart Rate Spike Detected!");
     }
