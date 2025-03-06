@@ -8,6 +8,12 @@
 
 #define READ_INTERVAL 60000 
 
+unsigned long lastTime = 0;
+int bpm = 0;
+MAX30105 particleSensor ;
+FirebaseData fbdo;
+FirebaseAuth auth;
+FirebaseConfig config; 
 
 
 
