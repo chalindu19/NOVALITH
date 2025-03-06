@@ -3,3 +3,11 @@
 #include <Firebase_ESP_Client.h>
 #include "MAX30105.h"
 #include "heartRate.h"
+// define wifi and fire base 
+
+
+#define READ_INTERVAL 60000 
+
+
+
+
