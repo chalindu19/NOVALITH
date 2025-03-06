@@ -11,5 +11,11 @@
 #define SCK_Pin 16 
 #define READ_INTERVAL 60000  // Interval to send data to Firebase in milliseconds
 
+unsigned long lastTime=0;
+long blood_pressure =0;
+HX710B pressure_sensor;
+FirebaseData fbdo;
+FirebaseAuth auth;
+FirebaseConfig config; 
 
 
