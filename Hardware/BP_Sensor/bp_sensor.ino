@@ -18,4 +18,14 @@ FirebaseData fbdo;
 FirebaseAuth auth;
 FirebaseConfig config; 
 
+void iniWifi(){
+    Wifi.begin(Wifi_SSID,WIFI_PASSWORD);
+    Serial.print("Connecting to wifi");
+    while(Wifi.status() !=WL_CONNECTED){
+        Serial.print('.');
+        delay(1000);
+    }
+    Serial.println("\nConnected to Wifi,IP:" +Wifi.localIP().toString());
+}
+
 
