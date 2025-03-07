@@ -14,7 +14,6 @@ import 'package:novalith/Views/Contents/Home/home.dart';
 import 'package:novalith/Views/Widgets/custom_button.dart';
 import 'package:novalith/Views/Widgets/custom_text_form_field.dart';
 
-
 class Login extends StatefulWidget {
   const Login({super.key});
 
@@ -23,12 +22,19 @@ class Login extends StatefulWidget {
 }
 
 class _LoginState extends State<Login> {
+  final AuthController _authController = AuthController();
+  final _keyForm = GlobalKey<FormState>();
+
+  final TextEditingController _username = TextEditingController();
+  final TextEditingController _password = TextEditingController();
+
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Text("Login Screen"),
-      ),
-    );
+  void initState() {
+    _username.text = 'user@gmail.com';
+    _password.text = 'User@123';
+
+    // _username.text = 'doctor@gmail.com';
+    // _password.text = 'Doctor@123';
+
+    super.initState();
   }
-}
