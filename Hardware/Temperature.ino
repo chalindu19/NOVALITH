@@ -1,10 +1,11 @@
 #include <WiFi.h>
 #include <Firebase_ESP_Client.h>
-#include <Wire.h>  // For I2C communication (if needed for the temperature sensor)
 
-// Replace these with your actual WiFi and Firebase credentials
+// WiFi credentials
 #define WIFI_SSID "Galaxy s9"
 #define WIFI_PASSWORD "839747650"
+
+// Firebase credentials
 #define API_KEY "AIzaSyAMwYHbDkd9uQDOjabL-rSwZ_GwkDc3ZJU"
 #define DATABASE_URL "https://novalith-c49fb-default-rtdb.firebaseio.com"
 #define USER_EMAIL "user@gmail.com"
@@ -15,7 +16,6 @@ FirebaseData fbdo;
 FirebaseAuth auth;
 FirebaseConfig config;
 
-// Function to connect to WiFi
 void connectToWiFi() {
     WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
     Serial.print("Connecting to WiFi: ");
@@ -30,13 +30,11 @@ void connectToWiFi() {
     Serial.println(WiFi.localIP());
 }
 
-// Token callback function for Firebase authentication
 void tokenStatusCallback(FirebaseAuthTokenInfo info) {
     Serial.printf("Token Info: type = %s, status = %s\n",
                   info.auth_type.c_str(), info.status.c_str());
 }
 
-// Function to connect to Firebase
 void connectToFirebase() {
     config.api_key = API_KEY;
     auth.user.email = USER_EMAIL;
@@ -60,18 +58,15 @@ void connectToFirebase() {
     Serial.println(auth.token.uid.c_str());
 }
 
-// Function to read temperature (Replace with your actual sensor code)
+// Function to simulate temperature reading
 float readTemperature() {
-    // Dummy temperature value for testing
-    float tempC = 25.0 + (rand() % 10);  // Random value between 25-35°C
-    return tempC;
+    return 25.0 + (rand() % 10);  // Simulating a value between 25-35°C
 }
 
 void setup() {
     Serial.begin(115200);
-    
-    connectToWiFi();      // Connect to WiFi
-    connectToFirebase();  // Connect to Firebase
+    connectToWiFi();
+    connectToFirebase();
 }
 
 void loop() {
@@ -80,13 +75,5 @@ void loop() {
     Serial.print(temperature);
     Serial.println("°C");
 
-    // Push temperature data to Firebase
-    if (Firebase.RTDB.setFloat(&fbdo, "/temperature/value", temperature)) {
-        Serial.println("Temperature uploaded to Firebase.");
-    } else {
-        Serial.print("Firebase error: ");
-        Serial.println(fbdo.errorReason());
-    }
-
-    delay(5000); // Upload temperature every 5 seconds
+    delay(5000);
 }
