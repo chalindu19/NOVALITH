@@ -39,7 +39,7 @@ class _LoginState extends State<Login> {
     super.initState();
   }
 
- @override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -133,11 +133,77 @@ class _LoginState extends State<Login> {
                         },
                         obscureText: true),
                   ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20.0, vertical: 20.0),
+                    child: Align(
+                      alignment: Alignment.topRight,
+                      child: GestureDetector(
+                        onTap: () {
+                          Routes(context: context)
+                              .navigate(const ForgetPassword());
+                        },
+                        child: const Text(
+                          Login_forget_password_text,
+                          style: TextStyle(fontWeight: FontWeight.w500),
                         ),
                       ),
                     ),
                   ),
-                   ) 
-                   );
-                    }
-                     }
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 45.0, vertical: 5.0),
+                    child: CustomButton(
+                      buttonText: Login_button_text,
+                      textColor: color6,
+                      backgroundColor: colorPrimary,
+                      isBorder: false,
+                      borderColor: color6,
+                      onclickFunction: () async {
+                        if (_keyForm.currentState!.validate()) {
+                          FocusScope.of(context).unfocus();
+                          CustomUtils.showLoader(context);
+
+                          try {
+                            await _authController.doLogin({
+                              'email': _username.text,
+                              'password': _password.text
+                            }).then((value) {
+                              if (value == true) {
+                                Navigator.pushReplacement(
+                                    // ignore: use_build_context_synchronously
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (_) => const Home()));
+                              }
+                            });
+                          } catch (e) {
+                            // ignore: use_build_context_synchronously
+                            CustomUtils.hideLoader(context);
+                          }
+                        }
+                      },
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 20.0),
+                    child: Align(
+                      alignment: Alignment.center,
+                      child: GestureDetector(
+                        onTap: () {
+                          Routes(context: context).navigate(BusinessRegister());
+                        },
+                        child: const Text(
+                          Login_register_button_text,
+                          style: TextStyle(fontWeight: FontWeight.w500),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              )),
+        ),
+      )),
+    );
+  }
+}
