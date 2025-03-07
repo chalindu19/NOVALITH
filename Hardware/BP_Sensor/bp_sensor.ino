@@ -29,3 +29,10 @@ void iniWifi(){
 }
 
 
+
+
+long readSensorData(){
+    return pressure_sensor.mmHg();
+}
+
+
