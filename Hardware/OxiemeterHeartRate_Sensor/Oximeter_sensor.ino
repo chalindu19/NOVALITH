@@ -34,4 +34,7 @@ bool initOximeter(){
     return true;
 }
 
+long readSensorData (){
+    return particleSensor.getIR();
+}
 
