@@ -31,17 +31,29 @@ struct tm timeinfo;
 // OTA Update Status LED
 #define OTA_LED 2  
 
+// Variables for previous temperature readings
+float previousAmbientTemp = -999;
+float previousObjectTemp = -999;
+
+// Function to reconnect Wi-Fi if connection is lost
 void connectWiFi() {
-    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-    Serial.print("Connecting to WiFi...");
-
     while (WiFi.status() != WL_CONNECTED) {
-        Serial.print(".");
-        delay(1000);
+        WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+        Serial.print("Connecting to WiFi...");
+        int retries = 0;
+        while (WiFi.status() != WL_CONNECTED && retries < 30) {
+            delay(1000);
+            Serial.print(".");
+            retries++;
+        }
+        if (WiFi.status() == WL_CONNECTED) {
+            Serial.println("\nWiFi Connected!");
+            Serial.println(WiFi.localIP());
+            break;
+        } else {
+            Serial.println("\nWiFi connection failed. Retrying...");
+        }
     }
-
-    Serial.println("\nWiFi Connected!");
-    Serial.println(WiFi.localIP());
 }
 
 void setupFirebase() {
@@ -114,19 +126,29 @@ void setup() {
 void loop() {
     ArduinoOTA.handle();  // OTA Update Handling
 
+    // Read temperatures from the sensor
     float ambientTemp = mlx.readAmbientTempC();
     float objectTemp = mlx.readObjectTempC();
 
-    json.clear();
-    json.set("timestamp", getTimestamp());
-    json.set("ambient_temp", ambientTemp);
-    json.set("object_temp", objectTemp);
+    // Only update Firebase if there is a significant temperature change
+    if (abs(ambientTemp - previousAmbientTemp) > 1.0 || abs(objectTemp - previousObjectTemp) > 1.0) {
+        // Update previous temperature readings
+        previousAmbientTemp = ambientTemp;
+        previousObjectTemp = objectTemp;
 
-    if (Firebase.RTDB.setJSON(&fbdo, "/temperature_readings", &json)) {
-        Serial.println("✅ Data Sent to Firebase Successfully!");
-    } else {
-        Serial.print("❌ Firebase Error: ");
-        Serial.println(fbdo.errorReason());
+        // Create a timestamp and set JSON data
+        json.clear();
+        json.set("timestamp", getTimestamp());
+        json.set("ambient_temp", ambientTemp);
+        json.set("object_temp", objectTemp);
+
+        // Send data to Firebase
+        if (Firebase.RTDB.setJSON(&fbdo, "/temperature_readings", &json)) {
+            Serial.println("✅ Data Sent to Firebase Successfully!");
+        } else {
+            Serial.print("❌ Firebase Error: ");
+            Serial.println(fbdo.errorReason());
+        }
     }
 
     delay(60000); // Send data every 1 minute
