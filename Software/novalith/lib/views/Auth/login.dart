@@ -38,3 +38,59 @@ class _LoginState extends State<Login> {
 
     super.initState();
   }
+
+ @override
+Widget build(BuildContext context) {
+  return Scaffold(
+    resizeToAvoidBottomInset: false,
+    backgroundColor: color6,
+    body: SafeArea(
+      child: SizedBox(
+        height: displaySize.height,
+        width: displaySize.width,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10.0),
+          child: Form(
+            key: _keyForm,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Align(
+                  alignment: Alignment.center,
+                  child: SizedBox(
+                    width: displaySize.width * 0.4,
+                    child: Image.asset(logo),
+                  ),
+                ),
+                const SizedBox(height: 20.0),
+                Center(
+                  child: Text(
+                    Login_title.toUpperCase(),
+                    style: TextStyle(
+                      fontSize: 22.0,
+                      fontWeight: FontWeight.w500,
+                      color: color11,
+                    ),
+                  ),
+                ),
+                Align(
+                  alignment: Alignment.center,
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 5.0),
+                    child: Text(
+                      Login_subtitle.toUpperCase(),
+                      style: TextStyle(fontSize: 12.0, color: colorPrimary),
+                    ),
+                  ),
+                ),
+                SizedBox(height: displaySize.width * 0.1
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+}
