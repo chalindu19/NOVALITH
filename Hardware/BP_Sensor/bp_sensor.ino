@@ -1,22 +1,31 @@
-#define SENSOR_PIN 36  // GPIO36 (VP) for analog input
+#include <Wifi.h>
+#include <Firebase_ESP_Client.h>
+#include "DHT.h"
 
-void setup() {
-    Serial.begin(115200);
+//wifi and fire base set up 
+
+
+
+
+#define DOUT_Pin 17
+#define SCK_Pin 16 
+#define READ_INTERVAL 60000  // Interval to send data to Firebase in milliseconds
+
+unsigned long lastTime=0;
+long blood_pressure =0;
+HX710B pressure_sensor;
+FirebaseData fbdo;
+FirebaseAuth auth;
+FirebaseConfig config; 
+
+void iniWifi(){
+    Wifi.begin(Wifi_SSID,WIFI_PASSWORD);
+    Serial.print("Connecting to wifi");
+    while(Wifi.status() !=WL_CONNECTED){
+        Serial.print('.');
+        delay(1000);
+    }
+    Serial.println("\nConnected to Wifi,IP:" +Wifi.localIP().toString());
 }
 
-void loop() {
-    int rawValue = analogRead(SENSOR_PIN);
-    float voltage = (rawValue / 4095.0) * 3.3; // Convert to voltage (ESP32 ADC resolution)
-    float pressure = (voltage - 0.5) * (40.0 / 2.5); // Approximate pressure conversion
-
-    Serial.print("Raw Value: ");
-    Serial.print(rawValue);
-    Serial.print(" | Voltage: ");
-    Serial.print(voltage, 2);
-    Serial.print("V | Pressure: ");
-    Serial.print(pressure, 2);
-    Serial.println(" kPa");
-
-    delay(500);
-}
 
