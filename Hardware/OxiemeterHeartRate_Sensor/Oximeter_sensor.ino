@@ -26,4 +26,12 @@ void iniWifi(){
 }
 
 
+bool initOximeter(){
+    if (!particleSensor.begin()){
+        Serial.println("MAX30102 not found.Please check power");
+        return false;
+    }
+    return true;
+}
+
 
