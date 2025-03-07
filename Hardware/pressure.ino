@@ -1,7 +1,7 @@
 #include <WiFi.h>
 #include <Firebase_ESP_Client.h>
 #include <Wire.h>
-#include <Adafruit_MS5607.h>  // Added pressure sensor library
+#include <Adafruit_MS5607.h>
 
 #define WIFI_SSID "Galaxy s9"
 #define WIFI_PASSWORD "839747650"
@@ -13,7 +13,7 @@
 FirebaseData fbdo;
 FirebaseAuth auth;
 FirebaseConfig config;
-Adafruit_MS5607 pressureSensor; // Added pressure sensor object
+Adafruit_MS5607 pressureSensor;
 
 void tokenStatusCallback(TokenInfo info) {
     Serial.printf("Token Info: type = %s, status = %s\n", 
@@ -66,6 +66,21 @@ void initPressureSensor() {
     Serial.println("Pressure Sensor Initialized Successfully!");
 }
 
+void readPressureSensor() {
+    float pressure = pressureSensor.readPressure();
+    float temperature = pressureSensor.readTemperature();
+
+    Serial.print("Pressure: ");
+    Serial.print(pressure);
+    Serial.println(" mbar");
+
+    Serial.print("Temperature: ");
+    Serial.print(temperature);
+    Serial.println(" °C");
+
+    delay(2000);
+}
+
 void setup() {
     Serial.begin(115200);
     initializeNetwork();
@@ -73,5 +88,5 @@ void setup() {
 }
 
 void loop() {
-    // Placeholder for sensor data processing
+    readPressureSensor();
 }
