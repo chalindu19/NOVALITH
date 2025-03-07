@@ -60,7 +60,7 @@ void connectToFirebase() {
 
 // Function to simulate temperature reading
 float readTemperature() {
-    return 25.0 + (rand() % 10);  // Simulating a value between 25-35°C
+    return 25.0 + (rand() % 10);
 }
 
 void setup() {
@@ -74,6 +74,13 @@ void loop() {
     Serial.print("Temperature: ");
     Serial.print(temperature);
     Serial.println("°C");
+
+    if (Firebase.RTDB.setFloat(&fbdo, "/temperature/value", temperature)) {
+        Serial.println("Temperature uploaded to Firebase.");
+    } else {
+        Serial.print("Firebase error: ");
+        Serial.println(fbdo.errorReason());
+    }
 
     delay(5000);
 }
