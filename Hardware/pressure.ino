@@ -26,12 +26,20 @@ void tokenStatusCallback(TokenInfo info) {
 void initWiFi() {
     WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
     Serial.println("Connecting to WiFi...");
-    while (WiFi.status() != WL_CONNECTED) {
+    int attempts = 0;
+    while (WiFi.status() != WL_CONNECTED && attempts < 20) {
         Serial.print('.');
         delay(1000);
+        attempts++;
     }
-    Serial.println("\nConnected to WiFi!");
-    Serial.println(WiFi.localIP());
+
+    if (WiFi.status() == WL_CONNECTED) {
+        Serial.println("\nConnected to WiFi!");
+        Serial.println(WiFi.localIP());
+    } else {
+        Serial.println("\nFailed to connect to WiFi. Restarting...");
+        ESP.restart();
+    }
 }
 
 void initializeNetwork() {
@@ -49,9 +57,16 @@ void initializeNetwork() {
     Firebase.begin(&config, &auth);
 
     Serial.println("Getting User UID...");
-    while (auth.token.uid == "") {
+    int attempts = 0;
+    while (auth.token.uid == "" && attempts < 20) {
         Serial.print('.');
         delay(1000);
+        attempts++;
+    }
+
+    if (auth.token.uid == "") {
+        Serial.println("\nFailed to get User UID. Restarting...");
+        ESP.restart();
     }
 
     userUID = auth.token.uid.c_str();
@@ -59,12 +74,12 @@ void initializeNetwork() {
     Serial.println(userUID);
 }
 
-// Initialize the pressure sensor
 void initPressureSensor() {
     Serial.println("Initializing Pressure Sensor...");
     if (!pressureSensor.begin()) {
-        Serial.println("Failed to initialize pressure sensor!");
-        while (1);
+        Serial.println("Failed to initialize pressure sensor! Restarting...");
+        delay(3000);
+        ESP.restart();
     }
     Serial.println("Pressure Sensor Initialized Successfully!");
 }
@@ -87,6 +102,11 @@ void sendDataToFirebase(float pressure, float temperature) {
 void readPressureSensor() {
     float pressure = pressureSensor.readPressure();
     float temperature = pressureSensor.readTemperature();
+
+    if (isnan(pressure) || isnan(temperature)) {
+        Serial.println("Error: Failed to read sensor data.");
+        return;
+    }
 
     Serial.print("Pressure: ");
     Serial.print(pressure);
