@@ -38,3 +38,17 @@ long readSensorData (){
     return particleSensor.getIR();
 }
 
+
+
+int calculateHeartRate(long irValue){
+    static long lastBeat =0;
+    if (irValue> 50000){
+        if (checkForBeat(irValue)== true){
+
+        long delta =millis()-lastBeat;
+        lastBeat=millis();
+        return 60/ (delta / 1000.0);
+        }
+    }
+    return 0; 
+}
