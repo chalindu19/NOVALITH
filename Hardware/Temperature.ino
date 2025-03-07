@@ -1,86 +1,88 @@
+#include <Wire.h>
+#include <Adafruit_MLX90614.h>
 #include <WiFi.h>
 #include <Firebase_ESP_Client.h>
+#include "time.h"
 
-// WiFi credentials
-#define WIFI_SSID "Galaxy s9"
-#define WIFI_PASSWORD "839747650"
+// WiFi Credentials
+#define WIFI_SSID "YourWiFiName"
+#define WIFI_PASSWORD "YourWiFiPassword"
 
-// Firebase credentials
-#define API_KEY "AIzaSyAMwYHbDkd9uQDOjabL-rSwZ_GwkDc3ZJU"
-#define DATABASE_URL "https://novalith-c49fb-default-rtdb.firebaseio.com"
+// Firebase Credentials
+#define API_KEY "YourFirebaseAPIKey"
+#define DATABASE_URL "https://your-firebase-database-url.firebaseio.com"
 #define USER_EMAIL "user@gmail.com"
 #define USER_PASSWORD "User@123"
 
-// Firebase objects
+// Firebase Objects
 FirebaseData fbdo;
 FirebaseAuth auth;
 FirebaseConfig config;
+FirebaseJson json;
 
-void connectToWiFi() {
+// MLX90614 Sensor Object
+Adafruit_MLX90614 mlx = Adafruit_MLX90614();
+
+// NTP Time Configuration
+const char* ntpServer = "pool.ntp.org";
+struct tm timeinfo;
+
+void connectWiFi() {
     WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-    Serial.print("Connecting to WiFi: ");
-    Serial.println(WIFI_SSID);
-
+    Serial.print("Connecting to WiFi...");
+    
     while (WiFi.status() != WL_CONNECTED) {
-        Serial.print('.');
+        Serial.print(".");
         delay(1000);
     }
-    Serial.println("\nConnected to WiFi!");
-    Serial.print("IP Address: ");
+    
+    Serial.println("\nWiFi Connected!");
     Serial.println(WiFi.localIP());
 }
 
-void tokenStatusCallback(FirebaseAuthTokenInfo info) {
-    Serial.printf("Token Info: type = %s, status = %s\n",
-                  info.auth_type.c_str(), info.status.c_str());
-}
-
-void connectToFirebase() {
+void setupFirebase() {
     config.api_key = API_KEY;
     auth.user.email = USER_EMAIL;
     auth.user.password = USER_PASSWORD;
     config.database_url = DATABASE_URL;
 
-    Firebase.reconnectWiFi(true);
-    fbdo.setResponseSize(4096);
-    config.token_status_callback = tokenStatusCallback;
-    config.max_token_generation_retry = 5;
-
     Firebase.begin(&config, &auth);
+    Firebase.reconnectWiFi(true);
 
-    Serial.println("Getting User UID...");
-    while (auth.token.uid == "") {
-        Serial.print('.');
-        delay(1000);
-    }
-
-    Serial.print("\nUser UID: ");
-    Serial.println(auth.token.uid.c_str());
+    Serial.println("Connected to Firebase");
 }
 
-// Function to simulate temperature reading
-float readTemperature() {
-    return 25.0 + (rand() % 10);
+String getTimestamp() {
+    if (!getLocalTime(&timeinfo)) {
+        return "Unknown Time";
+    }
+    char buffer[30];
+    strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", &timeinfo);
+    return String(buffer);
 }
 
 void setup() {
     Serial.begin(115200);
-    connectToWiFi();
-    connectToFirebase();
+    if (!mlx.begin()) {
+        Serial.println("Error connecting to MLX90614. Check wiring!");
+        while (1);
+    }
+
+    connectWiFi();
+    setupFirebase();
+    configTime(0, 0, ntpServer);
 }
 
 void loop() {
-    float temperature = readTemperature();
-    Serial.print("Temperature: ");
-    Serial.print(temperature);
-    Serial.println("°C");
+    float ambientTemp = mlx.readAmbientTempC();
+    float objectTemp = mlx.readObjectTempC();
 
-    if (Firebase.RTDB.setFloat(&fbdo, "/temperature/value", temperature)) {
-        Serial.println("Temperature uploaded to Firebase.");
-    } else {
-        Serial.print("Firebase error: ");
-        Serial.println(fbdo.errorReason());
-    }
+    json.clear();
+    json.set("timestamp", getTimestamp());
+    json.set("ambient_temp", ambientTemp);
+    json.set("object_temp", objectTemp);
 
-    delay(5000);
+    Firebase.RTDB.setJSON(&fbdo, "/temperature_readings", &json);
+
+    delay(60000);
 }
