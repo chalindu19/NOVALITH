@@ -2,9 +2,13 @@
 #include <Firebase_ESP_Client.h>
 #include <Wire.h>
 #include <Adafruit_MS5607.h>
+#include <time.h>  // For timestamps
 
+// WiFi Credentials
 #define WIFI_SSID "Galaxy s9"
 #define WIFI_PASSWORD "839747650"
+
+// Firebase Credentials
 #define API_KEY "AIzaSyAMwYHbDkd9uQDOjabL-rSwZ_GwkDc3ZJU"
 #define USER_EMAIL "user@gmail.com"
 #define USER_PASSWORD "User@123"
@@ -16,13 +20,17 @@ FirebaseConfig config;
 Adafruit_MS5607 pressureSensor;
 
 String userUID;
+unsigned long lastUploadTime = 0;
+const long uploadInterval = 5000;  // Upload every 5 seconds
 
+// Firebase Token Status Callback
 void tokenStatusCallback(TokenInfo info) {
     Serial.printf("Token Info: type = %s, status = %s\n", 
                   info.token_type.c_str(), 
                   info.status.c_str());
 }
 
+// Initialize WiFi Connection with Retry
 void initWiFi() {
     WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
     Serial.println("Connecting to WiFi...");
@@ -42,6 +50,7 @@ void initWiFi() {
     }
 }
 
+// Initialize Firebase Authentication with Retry
 void initializeNetwork() {
     initWiFi();
     config.api_key = API_KEY;
@@ -65,8 +74,8 @@ void initializeNetwork() {
     }
 
     if (auth.token.uid == "") {
-        Serial.println("\nFailed to get User UID. Restarting...");
-        ESP.restart();
+        Serial.println("\nFailed to get User UID. Retrying...");
+        return;  // Don't restart, allow retries
     }
 
     userUID = auth.token.uid.c_str();
@@ -74,20 +83,49 @@ void initializeNetwork() {
     Serial.println(userUID);
 }
 
-void initPressureSensor() {
-    Serial.println("Initializing Pressure Sensor...");
-    if (!pressureSensor.begin()) {
-        Serial.println("Failed to initialize pressure sensor! Restarting...");
-        delay(3000);
-        ESP.restart();
-    }
-    Serial.println("Pressure Sensor Initialized Successfully!");
+// Get Current Timestamp
+String getTimestamp() {
+    time_t now = time(nullptr);
+    struct tm *timeinfo = localtime(&now);
+
+    char buffer[30];
+    strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", timeinfo);
+    return String(buffer);
 }
 
+// Initialize Pressure Sensor with Auto-Retry
+void initPressureSensor() {
+    Serial.println("Initializing Pressure Sensor...");
+    int attempts = 0;
+    while (!pressureSensor.begin() && attempts < 3) {
+        Serial.println("Failed to initialize pressure sensor. Retrying...");
+        delay(2000);
+        attempts++;
+    }
+
+    if (attempts == 3) {
+        Serial.println("Error: Could not initialize pressure sensor!");
+    } else {
+        Serial.println("Pressure Sensor Initialized Successfully!");
+    }
+}
+
+// Send Data to Firebase with Timestamp
 void sendDataToFirebase(float pressure, float temperature) {
+    if (WiFi.status() != WL_CONNECTED) {
+        Serial.println("WiFi Disconnected! Skipping Firebase upload...");
+        return;
+    }
+
+    if (userUID == "") {
+        Serial.println("User UID not available. Skipping upload...");
+        return;
+    }
+
     String path = "/users/" + userUID + "/sensor_data";
 
     FirebaseJson json;
+    json.set("timestamp", getTimestamp());
     json.set("pressure", pressure);
     json.set("temperature", temperature);
     
@@ -99,12 +137,14 @@ void sendDataToFirebase(float pressure, float temperature) {
     }
 }
 
+// Read Pressure Sensor Data & Handle Errors
 void readPressureSensor() {
     float pressure = pressureSensor.readPressure();
     float temperature = pressureSensor.readTemperature();
 
     if (isnan(pressure) || isnan(temperature)) {
-        Serial.println("Error: Failed to read sensor data.");
+        Serial.println("Error: Failed to read sensor data. Retrying sensor initialization...");
+        initPressureSensor();
         return;
     }
 
@@ -117,8 +157,6 @@ void readPressureSensor() {
     Serial.println(" °C");
 
     sendDataToFirebase(pressure, temperature);
-
-    delay(5000); // Upload data every 5 seconds
 }
 
 void setup() {
@@ -128,5 +166,8 @@ void setup() {
 }
 
 void loop() {
-    readPressureSensor();
+    if (millis() - lastUploadTime >= uploadInterval) {
+        readPressureSensor();
+        lastUploadTime = millis();
+    }
 }
