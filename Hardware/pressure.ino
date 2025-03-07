@@ -15,6 +15,8 @@ FirebaseAuth auth;
 FirebaseConfig config;
 Adafruit_MS5607 pressureSensor;
 
+String userUID;
+
 void tokenStatusCallback(TokenInfo info) {
     Serial.printf("Token Info: type = %s, status = %s\n", 
                   info.token_type.c_str(), 
@@ -52,8 +54,9 @@ void initializeNetwork() {
         delay(1000);
     }
 
+    userUID = auth.token.uid.c_str();
     Serial.print("\nUser UID: ");
-    Serial.println(auth.token.uid.c_str());
+    Serial.println(userUID);
 }
 
 // Initialize the pressure sensor
@@ -64,6 +67,21 @@ void initPressureSensor() {
         while (1);
     }
     Serial.println("Pressure Sensor Initialized Successfully!");
+}
+
+void sendDataToFirebase(float pressure, float temperature) {
+    String path = "/users/" + userUID + "/sensor_data";
+
+    FirebaseJson json;
+    json.set("pressure", pressure);
+    json.set("temperature", temperature);
+    
+    if (Firebase.RTDB.setJSON(&fbdo, path.c_str(), &json)) {
+        Serial.println("Data sent to Firebase successfully.");
+    } else {
+        Serial.print("Firebase Error: ");
+        Serial.println(fbdo.errorReason());
+    }
 }
 
 void readPressureSensor() {
@@ -78,7 +96,9 @@ void readPressureSensor() {
     Serial.print(temperature);
     Serial.println(" °C");
 
-    delay(2000);
+    sendDataToFirebase(pressure, temperature);
+
+    delay(5000); // Upload data every 5 seconds
 }
 
 void setup() {
