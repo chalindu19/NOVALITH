@@ -112,7 +112,18 @@ unsigned long getTime() {
   return now;
 }
 void setup() {
- 
+  Serial.begin(115200);
+  pinMode(AD8232_SIGNAL, INPUT);
+  pinMode(LO_PLUS, INPUT);
+  pinMode(LO_MINUS, INPUT);
+
+  tft.begin();
+  tft.setRotation(3);
+  tft.fillScreen(ILI9341_BLACK);
+  tft.setTextColor(ILI9341_WHITE);
+  tft.setTextSize(2);
+  tft.setCursor(10, 10);
+  tft.print("ECG Monitor");
 }
 void readTempbody() {
  
@@ -161,6 +172,17 @@ void ecg() {
         }
 
         delay(DELAY_TIME);
+
+        if (digitalRead(LO_PLUS) == HIGH || digitalRead(LO_MINUS) == HIGH) {
+          Serial.println("WARNING: Leads Off!");
+          tft.fillRect(10, 70, 200, 20, ILI9341_BLACK); // Clear previous warning
+          tft.setCursor(10, 70);
+          tft.setTextColor(ILI9341_RED);
+          tft.print("WARNING: Leads Off!");
+          tft.setTextColor(ILI9341_WHITE);
+      } else {
+          tft.fillRect(10, 70, 200, 20, ILI9341_BLACK); // Clear warning if leads are on
+      }
       }
   }
 
