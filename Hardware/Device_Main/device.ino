@@ -126,7 +126,19 @@ void setup() {
   tft.print("ECG Monitor");
 }
 void readTempbody() {
- 
+  if (millis() - lastReadTime >= READ_INTERVAL) {
+    lastReadTime = millis();
+    float ambientTemp = mlx.readAmbientTempC();
+    float bodyTemp = mlx.readObjectTempC();
+    Serial.print("Ambient Temp: ");
+    Serial.print(ambientTemp);
+    Serial.print(" C, Body Temp: ");
+    Serial.print(bodyTemp);
+    Serial.println(" C");
+    
+    Firebase.RTDB.setFloat(&fbdo, liveData + "/ambient_temp", ambientTemp);
+    Firebase.RTDB.setFloat(&fbdo, liveData + "/body_temp", bodyTemp);
+  }
 }
 void max30102Read() {
 
