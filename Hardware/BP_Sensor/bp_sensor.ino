@@ -42,6 +42,14 @@ long readSensorData(){
 }
 
 
+void checkWiFiStatus(){
+    if (WiFi.status() ! = WL_CONNECTED){
+        Serial.println("wifi disconnected");
+        initWiFi();
+    }
+}
+
+
 
 bool isValidReading (long blood_pressure){
     return blood_pressure > 20 && blood_pressure < 200;
