@@ -38,6 +38,12 @@ bool initPressureSensor (){
 
 long readSensorData(){
     return pressure_sensor.mmHg();
+
 }
 
+
+
+bool isValidReading (long blood_pressure){
+    return blood_pressure > 20 && blood_pressure < 200;
+}
 
