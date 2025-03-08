@@ -45,6 +45,7 @@ dependencies:
   flutter_datetime_picker_plus: ^2.2.0
   awesome_notifications: ^0.10.1
   firebase_database: ^11.3.4
+  form_validation: ^3.2.0
 
 dev_dependencies:
   flutter_test:
