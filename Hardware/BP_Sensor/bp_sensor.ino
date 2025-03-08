@@ -29,3 +29,33 @@ void iniWifi(){
 }
 
 
+
+bool initPressureSensor (){
+    pressure_sensor.begin(DOUT_Pin,SCK_Pin);
+    return true; 
+}
+
+
+long readSensorData(){
+    return pressure_sensor.mmHg();
+
+}
+
+
+void checkWiFiStatus(){
+    if (WiFi.status() ! = WL_CONNECTED){
+        Serial.println("wifi disconnected");
+        initWiFi();
+    }
+}
+
+
+
+bool isValidReading (long blood_pressure){
+    return blood_pressure > 20 && blood_pressure < 200;
+}
+
+void logSensorData(long blood_pressure){
+    Serial.print("blood pressure(mmHg): ");
+    Serial.println(blood_pressure);  
+}
