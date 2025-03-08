@@ -30,6 +30,11 @@ void iniWifi(){
 
 
 
+bool initPressureSensor (){
+    pressure_sensor.begin(DOUT_Pin,SCK_Pin);
+    return true; 
+}
+
 
 long readSensorData(){
     return pressure_sensor.mmHg();
