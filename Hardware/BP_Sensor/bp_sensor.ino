@@ -55,3 +55,7 @@ bool isValidReading (long blood_pressure){
     return blood_pressure > 20 && blood_pressure < 200;
 }
 
+void logSensorData(long blood_pressure){
+    Serial.print("blood pressure(mmHg): ");
+    Serial.println(blood_pressure);  
+}
