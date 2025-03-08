@@ -65,3 +65,9 @@ void checkWiFiStatus(){
 bool isValidReading(int bpm){
     return bpm > 0 && bpm < 200 ; 
 }
+
+
+void logSensorData(int bpm){
+    Serial.print("heart rate(bpm):");
+    Serial.println(bpm);  
+}
