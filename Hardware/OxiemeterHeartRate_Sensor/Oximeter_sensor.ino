@@ -52,3 +52,16 @@ int calculateHeartRate(long irValue){
     }
     return 0; 
 }
+
+
+void checkWiFiStatus(){
+    if (WiFi.status() !=WL_CONNECTED){
+        Serial.println("wifi is disconnected ");
+        initWiFi();
+    }
+}
+
+
+bool isValidReading(int bpm){
+    return bpm > 0 && bpm < 200 ; 
+}
