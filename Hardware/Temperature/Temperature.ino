@@ -28,32 +28,22 @@ Adafruit_MLX90614 mlx = Adafruit_MLX90614();
 const char* ntpServer = "pool.ntp.org";
 struct tm timeinfo;
 
-// OTA Update Status LED
+// OTA Update LED
 #define OTA_LED 2  
 
-// Variables for previous temperature readings
+// Previous temperature readings for optimization
 float previousAmbientTemp = -999;
 float previousObjectTemp = -999;
 
-// Function to reconnect Wi-Fi if connection is lost
 void connectWiFi() {
+    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+    WiFi.setSleep(true);
+    Serial.print("Connecting to WiFi...");
     while (WiFi.status() != WL_CONNECTED) {
-        WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-        Serial.print("Connecting to WiFi...");
-        int retries = 0;
-        while (WiFi.status() != WL_CONNECTED && retries < 30) {
-            delay(1000);
-            Serial.print(".");
-            retries++;
-        }
-        if (WiFi.status() == WL_CONNECTED) {
-            Serial.println("\nWiFi Connected!");
-            Serial.println(WiFi.localIP());
-            break;
-        } else {
-            Serial.println("\nWiFi connection failed. Retrying...");
-        }
+        delay(1000);
+        Serial.print(".");
     }
+    Serial.println("\nWiFi Connected!");
 }
 
 void setupFirebase() {
@@ -64,14 +54,11 @@ void setupFirebase() {
 
     Firebase.begin(&config, &auth);
     Firebase.reconnectWiFi(true);
-
     Serial.println("Connected to Firebase");
 }
 
 String getTimestamp() {
-    if (!getLocalTime(&timeinfo)) {
-        return "Unknown Time";
-    }
+    if (!getLocalTime(&timeinfo)) return "Unknown Time";
     char buffer[30];
     strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", &timeinfo);
     return String(buffer);
@@ -82,25 +69,19 @@ void setupOTA() {
 
     ArduinoOTA.onStart([]() {
         Serial.println("OTA Update Started...");
-        digitalWrite(OTA_LED, HIGH);
     });
-
+    
     ArduinoOTA.onEnd([]() {
         Serial.println("\nOTA Update Completed!");
-        digitalWrite(OTA_LED, LOW);
     });
 
     ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
         Serial.printf("OTA Progress: %u%%\r", (progress / (total / 100)));
+        digitalWrite(OTA_LED, (progress / (total / 100)) % 2);
     });
 
     ArduinoOTA.onError([](ota_error_t error) {
-        Serial.printf("OTA Error[%u]: ", error);
-        if (error == OTA_AUTH_ERROR) Serial.println("Auth Failed");
-        else if (error == OTA_BEGIN_ERROR) Serial.println("Begin Failed");
-        else if (error == OTA_CONNECT_ERROR) Serial.println("Connect Failed");
-        else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
-        else if (error == OTA_END_ERROR) Serial.println("End Failed");
+        Serial.printf("OTA Error[%u]\n", error);
     });
 
     ArduinoOTA.begin();
@@ -126,23 +107,18 @@ void setup() {
 void loop() {
     ArduinoOTA.handle();  // OTA Update Handling
 
-    // Read temperatures from the sensor
     float ambientTemp = mlx.readAmbientTempC();
     float objectTemp = mlx.readObjectTempC();
 
-    // Only update Firebase if there is a significant temperature change
     if (abs(ambientTemp - previousAmbientTemp) > 1.0 || abs(objectTemp - previousObjectTemp) > 1.0) {
-        // Update previous temperature readings
         previousAmbientTemp = ambientTemp;
         previousObjectTemp = objectTemp;
 
-        // Create a timestamp and set JSON data
         json.clear();
         json.set("timestamp", getTimestamp());
         json.set("ambient_temp", ambientTemp);
         json.set("object_temp", objectTemp);
 
-        // Send data to Firebase
         if (Firebase.RTDB.setJSON(&fbdo, "/temperature_readings", &json)) {
             Serial.println("✅ Data Sent to Firebase Successfully!");
         } else {
@@ -150,6 +126,5 @@ void loop() {
             Serial.println(fbdo.errorReason());
         }
     }
-
-    delay(60000); // Send data every 1 minute
+    delay(60000);
 }
