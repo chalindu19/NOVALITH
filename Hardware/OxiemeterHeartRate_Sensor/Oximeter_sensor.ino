@@ -78,3 +78,10 @@ void enableWatchdogTimer(){
     esp_task_wdt_add(NULL);
 }
 
+
+void enablePowerSavingMode() {
+    WiFi.setSleep(true);
+  }
+
+  
+
