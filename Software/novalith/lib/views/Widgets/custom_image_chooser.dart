@@ -110,3 +110,22 @@ class CustomImageChooser extends StatelessWidget {
         ),
       ));
     }
+
+if (maxImagesCount > images.length) {
+      widgetList.add(Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10.0),
+        child: CustomButton(
+            buttonText: addButtonText,
+            textColor: colorDarkBg,
+            backgroundColor: color8.withValues(alpha: 0.3),
+            isBorder: false,
+            borderColor: color6,
+            onclickFunction: () {
+              onItemAdded();
+            }),
+      ));
+    }
+
+    return widgetList;
+  }
+}
