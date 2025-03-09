@@ -71,3 +71,10 @@ void logSensorData(int bpm){
     Serial.print("heart rate(bpm):");
     Serial.println(bpm);  
 }
+
+
+void enableWatchdogTimer(){
+    esp_task_wdt_init(10, true);
+    esp_task_wdt_add(NULL);
+}
+
