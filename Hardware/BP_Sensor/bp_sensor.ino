@@ -59,3 +59,11 @@ void logSensorData(long blood_pressure){
     Serial.print("blood pressure(mmHg): ");
     Serial.println(blood_pressure);  
 }
+
+
+
+void enableWatchdogTimer(){
+    esp_task_wdt_init(10,true);
+    esp_task_wdt_add(NULL);
+}
+
