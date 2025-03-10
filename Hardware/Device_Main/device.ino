@@ -392,5 +392,9 @@ void dbData() {
   } 
 }
 void notify() {
+  Firebase.RTDB.setBool(&fbdo, notification + "/isNew", true);
+  delay(200);
+  Firebase.RTDB.setString(&fbdo, notification + "/message", Notify_Message);
+  delay(200);
   
 }
