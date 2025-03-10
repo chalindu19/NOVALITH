@@ -33,6 +33,16 @@ void iniWifi(){
 }
 
 
+void initFirebase(){
+    config.api_key = API_KEY;
+    auth.user.email = USER_EMAIL;
+    auth.user.password = USER_PASSWORD;
+    config.database_url = DATABASE_URL;
+    Firebase.begin(&config,&auth);
+    fbdo.setResponseSize(4096); 
+}
+
+
 bool initOximeter(){
     if (!particleSensor.begin()){
         Serial.println("MAX30102 not found.Please check power");
