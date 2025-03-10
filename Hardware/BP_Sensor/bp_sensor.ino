@@ -3,14 +3,21 @@
 #include "DHT.h"
 
 //wifi and fire base set up 
-
+#define WIFI_SSID " "
+#define WIFI_PASSWORD " "
+#define API_KEY " "
+#define USER_EMAIL " "
+#define USER_PASSWORD " "
+#define DATABASE_URL " "  
 
 
 
 #define DOUT_Pin 17
 #define SCK_Pin 16 
+
 #define READ_INTERVAL 60000  // Interval to send data to Firebase in milliseconds
 
+// global variables 
 unsigned long lastTime=0;
 long blood_pressure =0;
 HX710B pressure_sensor;
@@ -28,8 +35,17 @@ void iniWifi(){
     Serial.println("\nConnected to Wifi,IP:" +Wifi.localIP().toString());
 }
 
+// initialize the fire base 
+void initFirebase(){
+    config.api_key = API_KEY;
+    auth.user.email = USER_EMAIL; 
+    auth.user.password = USER_PASSWORD;
+    config.database_url = DATABASE_URL; 
+    Firebase.begin(&config,&auth);
+    fbdo.setResponseSize(4096); 
+}
 
-
+//check the pressure sensor connection 
 bool initPressureSensor (){
     pressure_sensor.begin(DOUT_Pin,SCK_Pin);
     return true; 
@@ -41,6 +57,15 @@ long readSensorData(){
 
 }
 
+// Send Data to Firebase
+void sendDataToFirebase(long blood_pressure) {
+    if (Firebase.RTDB.setString(&fbdo, "liveData/blood_pressure", String(blood_pressure))) {
+      Serial.println("Data sent to the  Fire base successfully.");
+    } else {
+      Serial.println("Failed to send data: " + fbdo.errorReason());
+    }
+}
+
 
 void checkWiFiStatus(){
     if (WiFi.status() ! = WL_CONNECTED){
@@ -50,7 +75,7 @@ void checkWiFiStatus(){
 }
 
 
-
+// validate the sensor reading 
 bool isValidReading (long blood_pressure){
     return blood_pressure > 20 && blood_pressure < 200;
 }
@@ -58,6 +83,11 @@ bool isValidReading (long blood_pressure){
 void logSensorData(long blood_pressure){
     Serial.print("blood pressure(mmHg): ");
     Serial.println(blood_pressure);  
+}
+
+     // Optimize Firebase Data Handling
+bool updateFirebase(String path, String value) {
+    return Firebase.RTDB.setString(&fbdo, path, value);
 }
 
 
@@ -72,11 +102,19 @@ void enablePowerSavingMode(){
 }
 
 
+    // Handle Firebase Errors
+void handleFirebaseErrors() {
+    if (!Firebase.ready()) {
+      Serial.println("Firebase disconnected");
+      initFirebase();
+    }
+}
+
 
 void debugMessage(){
     Serial.println("system running ");
 }
-
+ // set up the function 
 void setup(){
     Serial.begin(9600);
     initWiFi();
@@ -104,5 +142,8 @@ void loop(){
             logSensorData(blood_pressure);
         }
     }
-    //  add the fire base errors handling 
+    
+    handleFirebaseErrors();
+    debugMessage();
+    delay(5000);
 }
