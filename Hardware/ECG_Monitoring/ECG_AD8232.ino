@@ -6,9 +6,10 @@
 #define LO_PLUS 2         
 #define LO_MINUS 3        
 #define ECG_THRESHOLD 550  
-#define SPIKE_THRESHOLD 150  
 #define PEAK_DELAY 200  
 #define WAKE_UP_PIN 34  
+#define BUZZER_PIN 5  
+#define DELAY_TIME 500
 
 Adafruit_ILI9341 tft = Adafruit_ILI9341(10, 9, 8);
 unsigned long lastPeakTime = 0;
@@ -19,6 +20,7 @@ void setup() {
     pinMode(LO_PLUS, INPUT);
     pinMode(LO_MINUS, INPUT);
     pinMode(WAKE_UP_PIN, INPUT_PULLUP);
+    pinMode(BUZZER_PIN, OUTPUT);
     
     tft.begin();
     tft.setRotation(3);
@@ -63,6 +65,7 @@ void loop() {
         tft.setTextColor(ILI9341_RED);
         tft.print("Leads Off!");
         tft.setTextColor(ILI9341_WHITE);
+        tone(BUZZER_PIN, 1000, 500);
     } else {
         tft.fillRect(10, 70, 200, 20, ILI9341_BLACK);
     }
@@ -72,4 +75,5 @@ void loop() {
         esp_sleep_enable_ext0_wakeup((gpio_num_t)WAKE_UP_PIN, HIGH);
         esp_deep_sleep_start();
     }
+    delay(DELAY_TIME);
 }
