@@ -32,48 +32,65 @@ void setup() {
 }
 
 void loop() {
-    int ecgValue = analogRead(AD8232_SIGNAL);
-    Serial.print("ECG: ");
-    Serial.println(ecgValue);
+    while (readingActive2) {
 
-    tft.fillRect(10, 30, 200, 20, ILI9341_BLACK);
-    tft.setCursor(10, 30);
-    tft.print("ECG: ");
-    tft.print(ecgValue);
-
-    if (ecgValue > ECG_THRESHOLD) {
-        unsigned long currentTime = millis();
-        if (currentTime - lastPeakTime > PEAK_DELAY) {
-            int heartRate = 60000 / (currentTime - lastPeakTime);
-            Serial.print("HR: ");
-            Serial.println(heartRate);
-
-            tft.fillRect(10, 50, 200, 20, ILI9341_BLACK);
-            tft.setCursor(10, 50);
-            tft.print("HR: ");
-            tft.print(heartRate);
-            tft.print(" BPM");
-
-            lastPeakTime = currentTime;
+        currentMillis = millis();
+    
+        if (currentMillis - readStartTime2 >= READ_DURATION2) {
+          readingActive2 = false;
+          lastReadTime2 = currentMillis;
+          Serial.println("ECG Heart rate reading completed.");
         }
-    }
-
-    if (digitalRead(LO_PLUS) || digitalRead(LO_MINUS)) {
-        Serial.println("WARNING: Leads Off!");
-        tft.fillRect(10, 70, 200, 20, ILI9341_BLACK);
-        tft.setCursor(10, 70);
-        tft.setTextColor(ILI9341_RED);
-        tft.print("Leads Off!");
-        tft.setTextColor(ILI9341_WHITE);
-        tone(BUZZER_PIN, 1000, 500);
-    } else {
-        tft.fillRect(10, 70, 200, 20, ILI9341_BLACK);
-    }
-
-    if (ecgValue < ECG_THRESHOLD) {
-        Serial.println("Entering deep sleep...");
-        esp_sleep_enable_ext0_wakeup((gpio_num_t)WAKE_UP_PIN, HIGH);
-        esp_deep_sleep_start();
-    }
-    delay(DELAY_TIME);
-}
+    
+        // Check if leads are off
+        if ((digitalRead(33) == 1) || (digitalRead(32) == 1)) {
+          Serial.println("Leads off! No heart rate calculated.");
+          bpm = 0;  // Reset BPM to avoid false readings
+          delay(500);  // Slow down the loop to avoid spam
+          return;
+        }
+    
+        // Collect multiple samples and compute average ECG value
+        int sumECG = 0;
+    
+        
+    
+        for (int i = 0; i < SAMPLE_SIZE; i++) {
+          sumECG += analogRead(ECG_PIN);
+          delayMicroseconds(500); // Short delay between readings to reduce noise
+        }
+        int avgECG = sumECG / SAMPLE_SIZE;  // Compute average of collected samples
+    
+        // Apply moving average filter
+        ecgBuffer[bufferIndex] = avgECG;
+        bufferIndex = (bufferIndex + 1) % MOVING_AVG_SIZE;
+        int filteredECG = getMovingAverage();
+    
+        // Determine dynamic threshold
+        static int maxECG = 0;
+        if (filteredECG > maxECG) {
+          maxECG = filteredECG;
+        }
+        int threshold = maxECG * THRESHOLD_FACTOR;
+    
+        // Detect R-peaks and calculate BPM
+        if (filteredECG > threshold) {
+          unsigned long currentTime = millis();
+          if (currentTime - lastPeakTime > 300) {  // Ignore noise (minimum 300ms gap)
+            unsigned long rrInterval = currentTime - lastPeakTime;
+            lastPeakTime = currentTime;
+            bpm = 60000.0 / rrInterval; // Convert RR interval to BPM
+          }
+        }
+    
+        // Print data
+        Serial.print("ECG: ");
+        Serial.print(filteredECG);
+        Serial.print(" | BPM: ");
+        Serial.println(bpm);
+    
+        Firebase.RTDB.setString(&fbdo, liveData + "/ecg", bpm);
+    
+        delay(1);
+      }
+    }    
