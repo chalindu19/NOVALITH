@@ -108,7 +108,9 @@ class _BusinessRegisterState extends State<BusinessRegister> {
                   textInputType: TextInputType.text,
                   validation: (value) {
                     final validator = Validator(
-                      validators: [const RequiredValidator()],
+                      validators: [
+                        const RequiredValidator()
+                      ],
                     );
                     return validator.validate(
                       label: register_validation_invalid_password,
@@ -131,7 +133,9 @@ class _BusinessRegisterState extends State<BusinessRegister> {
                   textInputType: TextInputType.text,
                   validation: (value) {
                     final validator = Validator(
-                      validators: [const RequiredValidator()],
+                      validators: [
+                        const RequiredValidator()
+                      ],
                     );
 
                     if (value != _password.text) {
@@ -144,6 +148,30 @@ class _BusinessRegisterState extends State<BusinessRegister> {
                     );
                   },
                   obscureText: true,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 5.0),
+                child: Row(
+                  children: [
+                    SizedBox(
+                      height: 20.0,
+                      width: 20.0,
+                      child: Checkbox(
+                        checkColor: colorPrimary,
+                        fillColor: MaterialStateProperty.all(color7),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(3),
+                        ),
+                        value: termsAndConditionCheck,
+                        onChanged: (bool? value) {
+                          setState(() {
+                            termsAndConditionCheck = value!;
+                          });
+                        },
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
