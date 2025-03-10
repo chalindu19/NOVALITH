@@ -8,10 +8,11 @@
 #define USER_PASSWORD "User@123"
 #define DATABASE_URL "https://novalith-c49fb-default-rtdb.firebaseio.com"
 
-// Firebase setup
 FirebaseData fbdo;
 FirebaseAuth auth;
 FirebaseConfig config;
+
+#define PRESSURE_SENSOR_PIN 34  // ADC pin for the FSR402 sensor
 
 void tokenStatusCallback(TokenInfo info) {
     Serial.printf("Token Info: type = %s, status = %s\n", 
@@ -19,7 +20,6 @@ void tokenStatusCallback(TokenInfo info) {
                   info.status.c_str());
 }
 
-// WiFi initialization
 void initWiFi() {
     WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
     Serial.println("Connecting to WiFi...");
@@ -31,9 +31,7 @@ void initWiFi() {
     Serial.println(WiFi.localIP());
 }
 
-// Firebase initialization
-void initializeNetwork() {
-    initWiFi();
+void initializeFirebase() {
     config.api_key = API_KEY;
     auth.user.email = USER_EMAIL;
     auth.user.password = USER_PASSWORD;
@@ -45,7 +43,7 @@ void initializeNetwork() {
     config.max_token_generation_retry = 5;
 
     Firebase.begin(&config, &auth);
-
+    
     Serial.println("Getting User UID...");
     while (auth.token.uid == "") {
         Serial.print('.');
@@ -56,38 +54,21 @@ void initializeNetwork() {
     Serial.println(auth.token.uid.c_str());
 }
 
-// FSR402 sensor setup
-#define FSR_PIN A0  // Analog pin for FSR sensor
+// New Function: Reads pressure sensor data
+int readPressureSensor() {
+    int pressureValue = analogRead(PRESSURE_SENSOR_PIN);
+    Serial.print("Pressure Sensor Reading: ");
+    Serial.println(pressureValue);
+    return pressureValue;
+}
 
 void setup() {
     Serial.begin(115200);
-    initializeNetwork();  // Connects to WiFi and Firebase
-    pinMode(FSR_PIN, INPUT);
-}
-
-// Function to read pressure from FSR402
-int readPressure() {
-    int fsrValue = analogRead(FSR_PIN);  // Read raw analog value
-    int pressure = map(fsrValue, 0, 4095, 0, 100);  // Approximate pressure (0-100 scale)
-    Serial.print("FSR Raw Value: ");
-    Serial.print(fsrValue);
-    Serial.print(" | Pressure Estimate: ");
-    Serial.println(pressure);
-    return pressure;
-}
-
-// Upload sensor data to Firebase
-void uploadPressureToFirebase(int pressure) {
-    String path = "/sensorData/pressure";
-    if (Firebase.RTDB.setInt(&fbdo, path, pressure)) {
-        Serial.println("✅ Data uploaded to Firebase successfully.");
-    } else {
-        Serial.println("❌ Firebase upload failed: " + fbdo.errorReason());
-    }
+    initWiFi();
+    initializeFirebase();
 }
 
 void loop() {
-    int pressure = readPressure();  // Get pressure reading
-    uploadPressureToFirebase(pressure);  // Upload to Firebase
-    delay(5000);  // Wait 5 seconds before next reading
+    readPressureSensor();  // Reads the sensor value and prints it
+    delay(5000);  // Delay for 5 seconds before the next reading
 }
