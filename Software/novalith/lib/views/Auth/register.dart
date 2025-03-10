@@ -72,9 +72,34 @@ Widget build(BuildContext context) {
               textInputType: TextInputType.phone,
               obscureText: false,
             ),
-          ],
+           Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 5.0),
+                child: CustomTextFormField(
+                  height: 5.0,
+                  controller: _address,
+                  backgroundColor: color7,
+                  iconColor: colorPrimary,
+                  isIconAvailable: true,
+                  hint: 'Address',
+                  icon: Icons.map_outlined,
+                  maxLines: 3,
+                  textInputType: TextInputType.multiline,
+                  validation: (value) {
+                    final validator = Validator(
+                      validators: [const RequiredValidator()],
+                    );
+                    return validator.validate(
+                      label: register_validation_invalid_name,
+                      value: value,
+                    );
+                  },
+                  obscureText: false,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
-    ),
-  );
+    );
+  }
 }
