@@ -113,17 +113,18 @@ unsigned long getTime() {
 }
 void setup() {
   Serial.begin(115200);
-  pinMode(AD8232_SIGNAL, INPUT);
-  pinMode(LO_PLUS, INPUT);
-  pinMode(LO_MINUS, INPUT);
-
-  tft.begin();
-  tft.setRotation(3);
-  tft.fillScreen(ILI9341_BLACK);
-  tft.setTextColor(ILI9341_WHITE);
-  tft.setTextSize(2);
-  tft.setCursor(10, 10);
-  tft.print("ECG Monitor");
+    pinMode(AD8232_SIGNAL, INPUT);
+    pinMode(LO_PLUS, INPUT);
+    pinMode(LO_MINUS, INPUT);
+    pinMode(WAKE_UP_PIN, INPUT_PULLUP);
+    
+    tft.begin();
+    tft.setRotation(3);
+    tft.fillScreen(ILI9341_BLACK);
+    tft.setTextColor(ILI9341_WHITE);
+    tft.setTextSize(2);
+    tft.setCursor(10, 10);
+    tft.print("ECG Monitor");
 }
 void readTempbody() {
  
@@ -131,64 +132,56 @@ void readTempbody() {
 void max30102Read() {
 
 }
+
 void ecg() {
-  while (readingActive2) {
-    currentMillis = millis();
-
-    if (currentMillis - readStartTime2 >= READ_DURATION2) {
-        readingActive2 = false;
-        lastReadTime2 = currentMillis;
-        Serial.println("ECG Heart rate reading completed.");
-    }
-
-    int ecgValue = analogRead(AD8232_SIGNAL);
+  int ecgValue = analogRead(AD8232_SIGNAL);  // Read ECG value
     Serial.print("ECG: ");
     Serial.println(ecgValue);
 
-    // Display ECG value on TFT
+    // Update the ECG value on the TFT display
     tft.fillRect(10, 30, 200, 20, ILI9341_BLACK);
     tft.setCursor(10, 30);
     tft.print("ECG: ");
     tft.print(ecgValue);
 
-    // Detect heart rate
-    if (ecgValue > ECG_THRESHOLD && (ecgValue - lastECGValue) > SPIKE_THRESHOLD) {
-        unsigned long currentTime = millis();
-        if (currentTime - lastPeakTime > PEAK_DELAY) {
-            int heartRate = 60000 / (currentTime - lastPeakTime);
+    // Detect ECG spike and calculate heart rate
+    if (ecgValue > ECG_THRESHOLD) {
+        unsigned long currentTime = millis();  // Get current time
+        if (currentTime - lastPeakTime > PEAK_DELAY) {  // Check for peak delay
+            int heartRate = 60000 / (currentTime - lastPeakTime);  // Calculate heart rate
             Serial.print("HR: ");
             Serial.println(heartRate);
 
-            // Display heart rate on TFT
+            // Update heart rate on the TFT display
             tft.fillRect(10, 50, 200, 20, ILI9341_BLACK);
             tft.setCursor(10, 50);
             tft.print("HR: ");
             tft.print(heartRate);
             tft.print(" BPM");
 
-            lastPeakTime = currentTime;
-
-            // Send heart rate data to Firebase
-            Firebase.RTDB.setString(&fbdo, liveData + "/ecg", heartRate);
+            lastPeakTime = currentTime;  // Update last peak time
         }
     }
 
-    // Leads-off detection
+    // Detect leads off condition
     if (digitalRead(LO_PLUS) || digitalRead(LO_MINUS)) {
         Serial.println("WARNING: Leads Off!");
         tft.fillRect(10, 70, 200, 20, ILI9341_BLACK);
         tft.setCursor(10, 70);
         tft.setTextColor(ILI9341_RED);
-        tft.print("Leads Off!");
+        tft.print("Leads Off!");  // Display leads off warning
         tft.setTextColor(ILI9341_WHITE);
     } else {
-        tft.fillRect(10, 70, 200, 20, ILI9341_BLACK);
+        tft.fillRect(10, 70, 200, 20, ILI9341_BLACK);  // Clear the leads off message
     }
 
-    lastECGValue = ecgValue;
-    delay(1);
+    // Enter deep sleep if ECG value falls below the threshold
+    if (ecgValue < ECG_THRESHOLD) {
+        Serial.println("Entering deep sleep...");
+        esp_sleep_enable_ext0_wakeup((gpio_num_t)WAKE_UP_PIN, HIGH);  // Enable wake-up on pin
+        esp_deep_sleep_start();  // Enter deep sleep mode
     }
-}
+
 
     // Print data
     Serial.print("ECG: ");
@@ -202,7 +195,6 @@ void ecg() {
   }
 
 
-}
 // Function to compute moving average
 int getMovingAverage() {
   int sum = 0;
@@ -210,6 +202,7 @@ int getMovingAverage() {
     sum += ecgBuffer[i];
   }
   return sum / MOVING_AVG_SIZE;
+  
 }
 void historyData() {
   
