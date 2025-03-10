@@ -85,6 +85,11 @@ void logSensorData(long blood_pressure){
     Serial.println(blood_pressure);  
 }
 
+     // Optimize Firebase Data Handling
+bool updateFirebase(String path, String value) {
+    return Firebase.RTDB.setString(&fbdo, path, value);
+}
+
 
 
 void enableWatchdogTimer(){
@@ -97,11 +102,19 @@ void enablePowerSavingMode(){
 }
 
 
+    // Handle Firebase Errors
+void handleFirebaseErrors() {
+    if (!Firebase.ready()) {
+      Serial.println("Firebase disconnected");
+      initFirebase();
+    }
+}
+
 
 void debugMessage(){
     Serial.println("system running ");
 }
-
+ // set up the function 
 void setup(){
     Serial.begin(9600);
     initWiFi();
@@ -129,5 +142,8 @@ void loop(){
             logSensorData(blood_pressure);
         }
     }
-    //  add the fire base errors handling 
+    
+    handleFirebaseErrors();
+    debugMessage();
+    delay(5000);
 }
