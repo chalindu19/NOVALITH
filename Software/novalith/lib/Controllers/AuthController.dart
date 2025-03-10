@@ -6,7 +6,7 @@ import 'package:novalith/Models/Utils/Utils.dart';
 import 'package:novalith/Views/Auth/Login.dart';
 import 'package:flutter/material.dart';
 
-class Authcontroller {
+class AuthController {
   static late FirebaseAuth _auth;
   late DatabaseReference _databaseRef;
 
