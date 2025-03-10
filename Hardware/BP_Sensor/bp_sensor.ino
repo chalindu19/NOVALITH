@@ -3,12 +3,18 @@
 #include "DHT.h"
 
 //wifi and fire base set up 
-
+#define WIFI_SSID " "
+#define WIFI_PASSWORD " "
+#define API_KEY " "
+#define USER_EMAIL " "
+#define USER_PASSWORD " "
+#define DATABASE_URL " "  
 
 
 
 #define DOUT_Pin 17
 #define SCK_Pin 16 
+
 #define READ_INTERVAL 60000  // Interval to send data to Firebase in milliseconds
 
 unsigned long lastTime=0;
