@@ -382,7 +382,14 @@ void historyData() {
   
 }
 void dbData() {
-  
+  if (Firebase.RTDB.getString(&fbdo, liveData + "/Prediction")) {
+    if (fbdo.dataType() == "string") {
+      Prediction = fbdo.stringData();
+    }
+  }
+  else {
+    Serial.println(fbdo.errorReason());
+  } 
 }
 void notify() {
   
