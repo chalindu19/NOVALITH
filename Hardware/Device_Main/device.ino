@@ -253,7 +253,9 @@ void Readpressure() {
 void readTempbody() {
 
 }
+
 void max30102Read() {
+
   irValue = particleSensor.getIR();
 
   if (irValue < 50000) {
@@ -318,9 +320,8 @@ void max30102Read() {
   Serial.println();
   Firebase.RTDB.setString(&fbdo, liveData + "/heart_rate", beatAvg);
   delay(100);
-
- 
 }
+
 
 void ecg() {
 
