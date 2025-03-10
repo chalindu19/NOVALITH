@@ -45,7 +45,7 @@ void initFirebase(){
     fbdo.setResponseSize(4096); 
 }
 
-
+//check the pressure sensor connection 
 bool initPressureSensor (){
     pressure_sensor.begin(DOUT_Pin,SCK_Pin);
     return true; 
@@ -55,6 +55,15 @@ bool initPressureSensor (){
 long readSensorData(){
     return pressure_sensor.mmHg();
 
+}
+
+// Send Data to Firebase
+void sendDataToFirebase(long blood_pressure) {
+    if (Firebase.RTDB.setString(&fbdo, "liveData/blood_pressure", String(blood_pressure))) {
+      Serial.println("Data sent to the  Fire base successfully.");
+    } else {
+      Serial.println("Failed to send data: " + fbdo.errorReason());
+    }
 }
 
 
