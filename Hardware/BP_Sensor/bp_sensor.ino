@@ -59,3 +59,50 @@ void logSensorData(long blood_pressure){
     Serial.print("blood pressure(mmHg): ");
     Serial.println(blood_pressure);  
 }
+
+
+
+void enableWatchdogTimer(){
+    esp_task_wdt_init(10,true);
+    esp_task_wdt_add(NULL);
+}
+
+void enablePowerSavingMode(){
+    WiFi.setSleep(true); 
+}
+
+
+
+void debugMessage(){
+    Serial.println("system running ");
+}
+
+void setup(){
+    Serial.begin(9600);
+    initWiFi();
+    enableWatchdogTimer();
+    enablePowerSavingMode();
+
+    if(!initPressureSensor()){
+        Serial.println("Sensor initialization failed");
+        ESP.restart();
+    }
+}
+
+
+
+void loop(){
+    checkWiFiStatus();
+
+    unsigned long currentMillis = millis();
+    if (currentMillis-lastTime>= READ_INTERVAL){
+        lastTime = currentMillis;
+
+        long blood_pressure = readSensorData();
+        if(isValidReading(blood_pressure)){
+            sendDataToFirebase(blood_pressure);
+            logSensorData(blood_pressure);
+        }
+    }
+    //  add the fire base errors handling 
+}
