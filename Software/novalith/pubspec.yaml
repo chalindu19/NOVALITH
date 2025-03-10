@@ -43,6 +43,11 @@ dependencies:
   fluttertoast: ^8.2.12
   just_audio: ^0.9.46
   flutter_datetime_picker_plus: ^2.2.0
+  awesome_notifications: ^0.10.1
+  firebase_database: ^11.3.4
+  form_validation: ^3.2.0
+  firebase_auth: ^5.5.1
+  syncfusion_flutter_charts: ^28.2.9
 
 dev_dependencies:
   flutter_test:
