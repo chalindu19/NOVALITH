@@ -112,80 +112,200 @@ unsigned long getTime() {
   return now;
 }
 void setup() {
-  Serial.begin(115200);
-    pinMode(AD8232_SIGNAL, INPUT);
-    pinMode(LO_PLUS, INPUT);
-    pinMode(LO_MINUS, INPUT);
-    pinMode(WAKE_UP_PIN, INPUT_PULLUP);
-    pinMode(BUZZER_PIN, OUTPUT);
-    
-    tft.begin();
-    tft.setRotation(3);
-    tft.fillScreen(ILI9341_BLACK);
-    tft.setTextColor(ILI9341_WHITE);
-    tft.setTextSize(2);
-    tft.setCursor(10, 10);
-    tft.print("ECG Monitor");
+  Serial.begin(9600);
+  pinMode(33, INPUT); // Leads off detection LO +
+  pinMode(32, INPUT); // Leads off detection LO -
+  pressure_sensor.begin(DOUT_Pin, SCK_Pin);
+  Wire.begin(21, 22); // I2C pins for ESP32 (SDA: 21, SCL: 22)
+
+  if (!ads.begin()) {
+    Serial.println("Failed to initialize ADS1115!");
+    while (1);
+  }
+
+  ads.setGain(GAIN_ONE); // Gain = 1 (±4.096V input range)
+
+  if (!particleSensor.begin()) //Use default I2C port, 400kHz speed //Wire, I2C_SPEED_FAST
+  {
+    Serial.println("MAX30102 was not found. Please check wiring/power. ");
+    while (1);
+  }
+  Serial.println("Place your index finger on the sensor with steady pressure.");
+
+  particleSensor.setup(); //Configure sensor with default settings
+  particleSensor.setPulseAmplitudeRed(0x0A); //Turn Red LED to low to indicate sensor is running
+  particleSensor.setPulseAmplitudeGreen(0); //Turn off Green LED
+
+  if (!mlx.begin()) {
+    Serial.println("Error connecting to MLX sensor. Check wiring.");
+    while (1);
+  };
+
+  initWiFi();
+  configTime(0, 0, ntpServer);
+
+  // Assign the api key (required)
+  config.api_key = API_KEY;
+
+  // Assign the user sign in credentials
+  auth.user.email = USER_EMAIL;
+  auth.user.password = USER_PASSWORD;
+
+  // Assign the RTDB URL (required)
+ 
+
+  // Assign the callback function for the long running token generation task */
+  config.token_status_callback = tokenStatusCallback; //see addons/TokenHelper.h
+
+  // Assign the maximum retry of token generation
+  config.max_token_generation_retry = 5;
+
+  // Initialize the library with the Firebase authen and config
+  
+
+  // Getting the user UID might take a few seconds
+  Serial.println("Getting User UID");
+  while ((auth.token.uid) == "") {
+    Serial.print('.');
+    delay(1000);
+  }
+  // Print user UID
+  uid = auth.token.uid.c_str();
+  Serial.print("User UID: ");
+  Serial.println(uid);
+}
+
+// Function to read raw ADC value
+int readSensorRaw(uint8_t channel) {
+  return ads.readADC_SingleEnded(channel);
+}
+
+// Function to convert raw ADC value to percentage (0 - 100%)
+float mapToPercentage(int rawValue) {
+  float percentage = (rawValue / 26480.0) * 100.0;
+  return constrain(percentage, 0, 100); // Ensures values stay within 0-100%
+}
+
+void loop() {
+
+  timestamp = getTime();
+  timestamp = timestamp + "000";
+
+  if ((millis() - lastTime) > timerDelay) {
+    dbData();
+    lastTime = millis();
+  }
+  if ((millis() - lastTime2) > timerDelay2) {
+    historyData();
+    Firebase.RTDB.setString(&fbdo, liveData + "/isNew", "true");
+    lastTime2 = millis();
+  }
+
+  currentMillis = millis();
+
+  // Start a new reading session every 5 minutes
+  if (!readingActive && (currentMillis - lastReadTime >= READ_INTERVAL)) {
+    readingActive = true;
+    readStartTime = currentMillis;
+    Serial.println("Starting heart rate reading...");
+  }
+
+  if (!readingActive2 && (currentMillis - lastReadTime2 >= READ_INTERVAL2)) {
+    readingActive2 = true;
+    readStartTime2 = currentMillis;
+    Serial.println("Starting ecg heart rate reading...");
+  }
+
+  if (readingActive2) {
+    ecg();
+  }
+
+  // If reading is active, continue for 1 minute
+  if (readingActive) {
+    max30102Read();
+  }
+
+
+
+}
+void Readpressure() {
+
+
 }
 void readTempbody() {
- 
+  
 }
 void max30102Read() {
 
+ 
 }
 
 void ecg() {
-  int ecgValue = analogRead(AD8232_SIGNAL);  // Read ECG value
-  Serial.print("ECG: ");
-  Serial.println(ecgValue);
 
-  // Update the ECG value on the TFT display
-  tft.fillRect(10, 30, 200, 20, ILI9341_BLACK);
-  tft.setCursor(10, 30);
-  tft.print("ECG: ");
-  tft.print(ecgValue);
+  while (readingActive2) {
 
-  // Detect ECG spike and calculate heart rate
-  if (ecgValue > ECG_THRESHOLD) {
-      unsigned long currentTime = millis();  // Get current time
-      if (currentTime - lastPeakTime > PEAK_DELAY) {  // Check for peak delay
-          int heartRate = 60000 / (currentTime - lastPeakTime);  // Calculate heart rate
-          Serial.print("HR: ");
-          Serial.println(heartRate);
+    currentMillis = millis();
 
-          // Update heart rate on the TFT display
-          tft.fillRect(10, 50, 200, 20, ILI9341_BLACK);
-          tft.setCursor(10, 50);
-          tft.print("HR: ");
-          tft.print(heartRate);
-          tft.print(" BPM");
+    if (currentMillis - readStartTime2 >= READ_DURATION2) {
+      readingActive2 = false;
+      lastReadTime2 = currentMillis;
+      Serial.println("ECG Heart rate reading completed.");
+    }
 
-          lastPeakTime = currentTime;  // Update last peak time
+    // Check if leads are off
+    if ((digitalRead(33) == 1) || (digitalRead(32) == 1)) {
+      Serial.println("Leads off! No heart rate calculated.");
+      bpm = 0;  // Reset BPM to avoid false readings
+      delay(500);  // Slow down the loop to avoid spam
+      return;
+    }
+
+    // Collect multiple samples and compute average ECG value
+    int sumECG = 0;
+
+    
+
+    for (int i = 0; i < SAMPLE_SIZE; i++) {
+      sumECG += analogRead(ECG_PIN);
+      delayMicroseconds(500); // Short delay between readings to reduce noise
+    }
+    int avgECG = sumECG / SAMPLE_SIZE;  // Compute average of collected samples
+
+    // Apply moving average filter
+    ecgBuffer[bufferIndex] = avgECG;
+    bufferIndex = (bufferIndex + 1) % MOVING_AVG_SIZE;
+    int filteredECG = getMovingAverage();
+
+    // Determine dynamic threshold
+    static int maxECG = 0;
+    if (filteredECG > maxECG) {
+      maxECG = filteredECG;
+    }
+    int threshold = maxECG * THRESHOLD_FACTOR;
+
+    // Detect R-peaks and calculate BPM
+    if (filteredECG > threshold) {
+      unsigned long currentTime = millis();
+      if (currentTime - lastPeakTime > 300) {  // Ignore noise (minimum 300ms gap)
+        unsigned long rrInterval = currentTime - lastPeakTime;
+        lastPeakTime = currentTime;
+        bpm = 60000.0 / rrInterval; // Convert RR interval to BPM
       }
+    }
+
+    // Print data
+    Serial.print("ECG: ");
+    Serial.print(filteredECG);
+    Serial.print(" | BPM: ");
+    Serial.println(bpm);
+
+    Firebase.RTDB.setString(&fbdo, liveData + "/ecg", bpm);
+
+    delay(1);
   }
 
-  // Detect leads off condition
-  if (digitalRead(LO_PLUS) || digitalRead(LO_MINUS)) {
-      Serial.println("WARNING: Leads Off!");
-      tft.fillRect(10, 70, 200, 20, ILI9341_BLACK);
-      tft.setCursor(10, 70);
-      tft.setTextColor(ILI9341_RED);
-      tft.print("Leads Off!");
-      tft.setTextColor(ILI9341_WHITE);
-      tone(BUZZER_PIN, 1000, 500);  // Sound the buzzer for 500ms at 1kHz
-  } else {
-      tft.fillRect(10, 70, 200, 20, ILI9341_BLACK);
-  }
 
-  // Enter deep sleep if ECG value falls below the threshold
-  if (ecgValue < ECG_THRESHOLD) {
-      Serial.println("Entering deep sleep...");
-      esp_sleep_enable_ext0_wakeup((gpio_num_t)WAKE_UP_PIN, HIGH);  // Enable wake-up on pin
-      esp_deep_sleep_start();  // Enter deep sleep mode
-  }
-  delay(DELAY_TIME);
 }
-
 // Function to compute moving average
 int getMovingAverage() {
   int sum = 0;
@@ -193,7 +313,6 @@ int getMovingAverage() {
     sum += ecgBuffer[i];
   }
   return sum / MOVING_AVG_SIZE;
-  
 }
 void historyData() {
   
