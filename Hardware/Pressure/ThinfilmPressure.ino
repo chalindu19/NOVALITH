@@ -54,12 +54,30 @@ void initializeFirebase() {
     Serial.println(auth.token.uid.c_str());
 }
 
-// New Function: Reads pressure sensor data
 int readPressureSensor() {
     int pressureValue = analogRead(PRESSURE_SENSOR_PIN);
     Serial.print("Pressure Sensor Reading: ");
     Serial.println(pressureValue);
     return pressureValue;
+}
+
+// New Function: Uploads sensor data to Firebase
+void uploadData(int pressure) {
+    if (Firebase.ready()) {
+        String path = "/SensorData/" + String(auth.token.uid);
+        
+        FirebaseJson json;
+        json.set("pressure", pressure);
+
+        if (Firebase.updateNode(fbdo, path, json)) {
+            Serial.println("Data uploaded successfully!");
+        } else {
+            Serial.print("Firebase upload failed: ");
+            Serial.println(fbdo.errorReason());
+        }
+    } else {
+        Serial.println("Firebase not ready, skipping upload...");
+    }
 }
 
 void setup() {
@@ -69,6 +87,7 @@ void setup() {
 }
 
 void loop() {
-    readPressureSensor();  // Reads the sensor value and prints it
-    delay(5000);  // Delay for 5 seconds before the next reading
+    int pressure = readPressureSensor();
+    uploadData(pressure);
+    delay(5000);
 }
