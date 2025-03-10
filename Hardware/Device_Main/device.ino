@@ -175,6 +175,7 @@ void setup() {
   Serial.println(uid);
 }
 <<<<<<< HEAD
+<<<<<<< HEAD
 void readTempbody() {
   bodytemp = mlx.readObjectTempC();
   Serial.print("Object = ");
@@ -184,11 +185,16 @@ void readTempbody() {
   Firebase.RTDB.setString(&fbdo, liveData + "/body_temp", bodytemp);
   delay(100);
 =======
+=======
+>>>>>>> 6fa9f3ff6dd185994ba6744b6a13b29388cccedd
 
 // Function to read raw ADC value
 int readSensorRaw(uint8_t channel) {
   return ads.readADC_SingleEnded(channel);
+<<<<<<< HEAD
 >>>>>>> ee19f59d28b3d9b79cec5fedc2ed81720ca66c29
+=======
+>>>>>>> 6fa9f3ff6dd185994ba6744b6a13b29388cccedd
 }
 
 // Function to convert raw ADC value to percentage (0 - 100%)
@@ -322,7 +328,7 @@ void Readpressure() {
 
 }
 void readTempbody() {
-
+ 
 }
 
 void max30102Read() {
