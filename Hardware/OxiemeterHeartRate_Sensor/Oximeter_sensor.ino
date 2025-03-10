@@ -5,6 +5,13 @@
 #include "heartRate.h"
 // define wifi and fire base 
 
+#define Wifi_SSID " "
+#define WIFI_PASSWORD " "
+#define API_KEY " "
+#define USER_EMAIL " "
+#define USER_PASSWORD " "
+#define DATABASE_URL " "
+
 
 #define READ_INTERVAL 60000 
 
