@@ -31,6 +31,9 @@ struct tm timeinfo;
 // OTA Update Status LED
 #define OTA_LED 2  
 
+// Battery Monitoring
+#define BATTERY_PIN 34  // Analog pin for battery monitoring
+
 void connectWiFi() {
     WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
     Serial.print("Connecting to WiFi...");
@@ -78,21 +81,13 @@ void setupOTA() {
         digitalWrite(OTA_LED, LOW);
     });
 
-    ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
-        Serial.printf("OTA Progress: %u%%\r", (progress / (total / 100)));
-    });
-
-    ArduinoOTA.onError([](ota_error_t error) {
-        Serial.printf("OTA Error[%u]: ", error);
-        if (error == OTA_AUTH_ERROR) Serial.println("Auth Failed");
-        else if (error == OTA_BEGIN_ERROR) Serial.println("Begin Failed");
-        else if (error == OTA_CONNECT_ERROR) Serial.println("Connect Failed");
-        else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
-        else if (error == OTA_END_ERROR) Serial.println("End Failed");
-    });
-
     ArduinoOTA.begin();
     Serial.println("OTA Ready!");
+}
+
+float readBatteryVoltage() {
+    int rawValue = analogRead(BATTERY_PIN);
+    return (rawValue / 4095.0) * 3.3 * 2;  // Convert to actual voltage
 }
 
 void setup() {
@@ -116,29 +111,32 @@ void loop() {
 
     static float lastAmbientTemp = 0.0;
     static float lastObjectTemp = 0.0;
+    static float lastBatteryVoltage = 0.0;
 
     float ambientTemp = mlx.readAmbientTempC();
     float objectTemp = mlx.readObjectTempC();
+    float batteryVoltage = readBatteryVoltage();
 
-    // Only send data if the temperature changes significantly
-    if (abs(ambientTemp - lastAmbientTemp) > 1.0 || abs(objectTemp - lastObjectTemp) > 1.0) {
+    if (abs(ambientTemp - lastAmbientTemp) > 1.0 || abs(objectTemp - lastObjectTemp) > 1.0 || abs(batteryVoltage - lastBatteryVoltage) > 0.1) {
         lastAmbientTemp = ambientTemp;
         lastObjectTemp = objectTemp;
+        lastBatteryVoltage = batteryVoltage;
 
         json.clear();
         json.set("timestamp", getTimestamp());
         json.set("ambient_temp", ambientTemp);
         json.set("object_temp", objectTemp);
+        json.set("battery_voltage", batteryVoltage);
 
-        if (Firebase.RTDB.setJSON(&fbdo, "/temperature_readings", &json)) {
+        if (Firebase.RTDB.setJSON(&fbdo, "/sensor_data", &json)) {
             Serial.println("✅ Data Sent to Firebase Successfully!");
         } else {
             Serial.print("❌ Firebase Error: ");
             Serial.println(fbdo.errorReason());
         }
     } else {
-        Serial.println("ℹ️ No significant temperature change, skipping Firebase write.");
+        Serial.println("ℹ️ No significant change, skipping Firebase write.");
     }
 
-    delay(60000); // Send data every 1 minute
+    delay(60000);  // Send data every 1 minute
 }
