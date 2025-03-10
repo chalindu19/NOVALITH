@@ -115,7 +115,13 @@ void setup() {
  
 }
 void readTempbody() {
- 
+  bodytemp = mlx.readObjectTempC();
+  Serial.print("Object = ");
+  Serial.print(mlx.readObjectTempC());
+  Serial.println("*C");
+
+  Firebase.RTDB.setString(&fbdo, liveData + "/body_temp", bodytemp);
+  delay(100);
 }
 void max30102Read() {
 
