@@ -45,3 +45,36 @@ class _BusinessRegisterState extends State<BusinessRegister> {
 
     super.initState();
   }
+}
+
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    backgroundColor: color6,
+    body: SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10.0),
+        child: Column(
+          children: [
+            CustomTextFormField(
+              controller: _name,
+              backgroundColor: color7,
+              hint: 'Full Name',
+              icon: Icons.person_outline,
+              textInputType: TextInputType.text,
+              obscureText: false,
+            ),
+            CustomTextFormField(
+              controller: _mobile,
+              backgroundColor: color7,
+              hint: 'Mobile Number',
+              icon: Icons.phone_android_outlined,
+              textInputType: TextInputType.phone,
+              obscureText: false,
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
