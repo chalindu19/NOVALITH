@@ -298,10 +298,10 @@ void ecg() {
     Firebase.RTDB.setString(&fbdo, liveData + "/ecg", bpm);
 
     delay(1);
-  }
+  
 
 
-}
+
 // Function to compute moving average
 int getMovingAverage() {
   int sum = 0;
