@@ -11,12 +11,12 @@
 #include "heartRate.h"
 #include <Adafruit_MLX90614.h>
 
-#define WIFI_SSID ""
-#define WIFI_PASSWORD ""
+#define WIFI_SSID "Crishka"
+#define WIFI_PASSWORD "crishka456"
 #define API_KEY "AIzaSyAMwYHbDkd9uQDOjabL-rSwZ_GwkDc3ZJU"
 #define USER_EMAIL "user@gmail.com"
 #define USER_PASSWORD "User@123"
-#define DATABASE_URL ""
+#define DATABASE_URL "https://novalith-c49fb-default-rtdb.firebaseio.com"
 
 #define DOUT_Pin 17
 #define SCK_Pin 16
@@ -165,6 +165,7 @@ void setup() {
 
   // Initialize the library with the Firebase authen and config
   
+  Firebase.begin(&config, &auth);
 
   // Getting the user UID might take a few seconds
   Serial.println("Getting User UID");
@@ -200,7 +201,6 @@ void loop() {
   }
   if ((millis() - lastTime2) > timerDelay2) {
     historyData();
-    
     lastTime2 = millis();
   }
 
@@ -269,6 +269,7 @@ void loop() {
   if (millis() - kick_previousMillis >= kick_interval) {
     kick_previousMillis = millis();
     
+    Firebase.RTDB.setString(&fbdo, liveData + "/kicks_count", kicks_count);
     delay(200);
     kicks_count = 0;
     Serial.println("Kicks count reset to 0");
@@ -280,12 +281,20 @@ void loop() {
   Serial.print("Sensor 4: "); Serial.print(percent4); Serial.println("%");
 
   
+  Firebase.RTDB.setString(&fbdo, liveData + "/pressure1", percent1);
+  delay(100);
+  Firebase.RTDB.setString(&fbdo, liveData + "/pressure2", percent2);
+  delay(100);
+  Firebase.RTDB.setString(&fbdo, liveData + "/pressure3", percent3);
+  delay(100);
+  Firebase.RTDB.setString(&fbdo, liveData + "/pressure4", percent4);
+  delay(100);
 
 }
 void Readpressure() {
 
   blood_pressure = pressure_sensor.mmHg();
-
+  Firebase.RTDB.setString(&fbdo, liveData + "/blood_pressure", blood_pressure);
   
   delay(100);
 
@@ -316,8 +325,8 @@ void readTempbody() {
   }else if(bodytemp < 32 && sta5==1){
      sta5==0;
   }
-
   
+  Firebase.RTDB.setString(&fbdo, liveData + "/body_temp", bodytemp);
   delay(100);
 }
 void max30102Read() {
@@ -385,6 +394,7 @@ void max30102Read() {
 
   Serial.println();
   
+  Firebase.RTDB.setString(&fbdo, liveData + "/heart_rate", beatAvg);
   delay(100);
 }
 void ecg() {
@@ -409,7 +419,7 @@ void ecg() {
 
     // Collect multiple samples and compute average ECG value
     int sumECG = 0;
-
+    Firebase.RTDB.setInt(&fbdo, liveData + "/ecg_read", analogRead(ECG_PIN));
     
 
     for (int i = 0; i < SAMPLE_SIZE; i++) {
@@ -446,6 +456,7 @@ void ecg() {
     Serial.print(" | BPM: ");
     Serial.println(bpm);
 
+    Firebase.RTDB.setString(&fbdo, liveData + "/ecg", bpm);
     
 
     delay(1);
