@@ -2,7 +2,6 @@
 #include <Adafruit_MLX90614.h>
 #include <WiFi.h>
 #include <Firebase_ESP_Client.h>
-#include <ArduinoOTA.h>
 #include "time.h"
 
 // WiFi Credentials
@@ -28,11 +27,12 @@ Adafruit_MLX90614 mlx = Adafruit_MLX90614();
 const char* ntpServer = "pool.ntp.org";
 struct tm timeinfo;
 
-// OTA Update Status LED
-#define OTA_LED 2  
-
 // Battery Monitoring
-#define BATTERY_PIN 34  // Analog pin for battery monitoring
+#define BATTERY_PIN 34  
+
+// Buzzer Alert
+#define BUZZER_PIN 26  
+#define TEMP_THRESHOLD 38.0  
 
 void connectWiFi() {
     WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
@@ -68,32 +68,24 @@ String getTimestamp() {
     return String(buffer);
 }
 
-void setupOTA() {
-    ArduinoOTA.setHostname("ESP32_TemperatureSensor");
-
-    ArduinoOTA.onStart([]() {
-        Serial.println("OTA Update Started...");
-        digitalWrite(OTA_LED, HIGH);
-    });
-
-    ArduinoOTA.onEnd([]() {
-        Serial.println("\nOTA Update Completed!");
-        digitalWrite(OTA_LED, LOW);
-    });
-
-    ArduinoOTA.begin();
-    Serial.println("OTA Ready!");
-}
-
 float readBatteryVoltage() {
     int rawValue = analogRead(BATTERY_PIN);
-    return (rawValue / 4095.0) * 3.3 * 2;  // Convert to actual voltage
+    return (rawValue / 4095.0) * 3.3 * 2;  
+}
+
+void checkTemperatureAlert(float temperature) {
+    if (temperature >= TEMP_THRESHOLD) {
+        digitalWrite(BUZZER_PIN, HIGH);
+        Serial.println("🚨 High Temperature Alert! Buzzer Activated.");
+    } else {
+        digitalWrite(BUZZER_PIN, LOW);
+    }
 }
 
 void setup() {
     Serial.begin(115200);
-    pinMode(OTA_LED, OUTPUT);
-    digitalWrite(OTA_LED, LOW);
+    pinMode(BUZZER_PIN, OUTPUT);
+    digitalWrite(BUZZER_PIN, LOW);
 
     if (!mlx.begin()) {
         Serial.println("Error connecting to MLX90614. Check wiring!");
@@ -102,13 +94,10 @@ void setup() {
 
     connectWiFi();
     setupFirebase();
-    setupOTA();
     configTime(0, 0, ntpServer);
 }
 
 void loop() {
-    ArduinoOTA.handle();  // OTA Update Handling
-
     static float lastAmbientTemp = 0.0;
     static float lastObjectTemp = 0.0;
     static float lastBatteryVoltage = 0.0;
@@ -116,6 +105,8 @@ void loop() {
     float ambientTemp = mlx.readAmbientTempC();
     float objectTemp = mlx.readObjectTempC();
     float batteryVoltage = readBatteryVoltage();
+
+    checkTemperatureAlert(objectTemp);  
 
     if (abs(ambientTemp - lastAmbientTemp) > 1.0 || abs(objectTemp - lastObjectTemp) > 1.0 || abs(batteryVoltage - lastBatteryVoltage) > 0.1) {
         lastAmbientTemp = ambientTemp;
@@ -138,5 +129,5 @@ void loop() {
         Serial.println("ℹ️ No significant change, skipping Firebase write.");
     }
 
-    delay(60000);  // Send data every 1 minute
+    delay(60000);
 }
