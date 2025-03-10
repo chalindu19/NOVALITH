@@ -71,6 +71,15 @@ int calculateHeartRate(long irValue){
 }
 
 
+void sendDataToFirebase(int bpm){
+    if (Firebase.RTDB.setString(&fbdo, "live data / heart_rate",String(bpm))){
+        Serial.println("data sent to fire base successfully");
+    } else {
+        Serial.println("failed to sent data"+ fbdo.errorReason();)
+    }
+}
+
+
 void checkWiFiStatus(){
     if (WiFi.status() !=WL_CONNECTED){
         Serial.println("wifi is disconnected ");
