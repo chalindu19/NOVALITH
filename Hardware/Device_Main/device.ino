@@ -117,6 +117,7 @@ void setup() {
     pinMode(LO_PLUS, INPUT);
     pinMode(LO_MINUS, INPUT);
     pinMode(WAKE_UP_PIN, INPUT_PULLUP);
+    pinMode(BUZZER_PIN, OUTPUT);
     
     tft.begin();
     tft.setRotation(3);
@@ -135,65 +136,55 @@ void max30102Read() {
 
 void ecg() {
   int ecgValue = analogRead(AD8232_SIGNAL);  // Read ECG value
-    Serial.print("ECG: ");
-    Serial.println(ecgValue);
+  Serial.print("ECG: ");
+  Serial.println(ecgValue);
 
-    // Update the ECG value on the TFT display
-    tft.fillRect(10, 30, 200, 20, ILI9341_BLACK);
-    tft.setCursor(10, 30);
-    tft.print("ECG: ");
-    tft.print(ecgValue);
+  // Update the ECG value on the TFT display
+  tft.fillRect(10, 30, 200, 20, ILI9341_BLACK);
+  tft.setCursor(10, 30);
+  tft.print("ECG: ");
+  tft.print(ecgValue);
 
-    // Detect ECG spike and calculate heart rate
-    if (ecgValue > ECG_THRESHOLD) {
-        unsigned long currentTime = millis();  // Get current time
-        if (currentTime - lastPeakTime > PEAK_DELAY) {  // Check for peak delay
-            int heartRate = 60000 / (currentTime - lastPeakTime);  // Calculate heart rate
-            Serial.print("HR: ");
-            Serial.println(heartRate);
+  // Detect ECG spike and calculate heart rate
+  if (ecgValue > ECG_THRESHOLD) {
+      unsigned long currentTime = millis();  // Get current time
+      if (currentTime - lastPeakTime > PEAK_DELAY) {  // Check for peak delay
+          int heartRate = 60000 / (currentTime - lastPeakTime);  // Calculate heart rate
+          Serial.print("HR: ");
+          Serial.println(heartRate);
 
-            // Update heart rate on the TFT display
-            tft.fillRect(10, 50, 200, 20, ILI9341_BLACK);
-            tft.setCursor(10, 50);
-            tft.print("HR: ");
-            tft.print(heartRate);
-            tft.print(" BPM");
+          // Update heart rate on the TFT display
+          tft.fillRect(10, 50, 200, 20, ILI9341_BLACK);
+          tft.setCursor(10, 50);
+          tft.print("HR: ");
+          tft.print(heartRate);
+          tft.print(" BPM");
 
-            lastPeakTime = currentTime;  // Update last peak time
-        }
-    }
-
-    // Detect leads off condition
-    if (digitalRead(LO_PLUS) || digitalRead(LO_MINUS)) {
-        Serial.println("WARNING: Leads Off!");
-        tft.fillRect(10, 70, 200, 20, ILI9341_BLACK);
-        tft.setCursor(10, 70);
-        tft.setTextColor(ILI9341_RED);
-        tft.print("Leads Off!");  // Display leads off warning
-        tft.setTextColor(ILI9341_WHITE);
-    } else {
-        tft.fillRect(10, 70, 200, 20, ILI9341_BLACK);  // Clear the leads off message
-    }
-
-    // Enter deep sleep if ECG value falls below the threshold
-    if (ecgValue < ECG_THRESHOLD) {
-        Serial.println("Entering deep sleep...");
-        esp_sleep_enable_ext0_wakeup((gpio_num_t)WAKE_UP_PIN, HIGH);  // Enable wake-up on pin
-        esp_deep_sleep_start();  // Enter deep sleep mode
-    }
-
-
-    // Print data
-    Serial.print("ECG: ");
-    Serial.print(filteredECG);
-    Serial.print(" | BPM: ");
-    Serial.println(bpm);
-
-    Firebase.RTDB.setString(&fbdo, liveData + "/ecg", bpm);
-
-    delay(1);
+          lastPeakTime = currentTime;  // Update last peak time
+      }
   }
 
+  // Detect leads off condition
+  if (digitalRead(LO_PLUS) || digitalRead(LO_MINUS)) {
+      Serial.println("WARNING: Leads Off!");
+      tft.fillRect(10, 70, 200, 20, ILI9341_BLACK);
+      tft.setCursor(10, 70);
+      tft.setTextColor(ILI9341_RED);
+      tft.print("Leads Off!");
+      tft.setTextColor(ILI9341_WHITE);
+      tone(BUZZER_PIN, 1000, 500);  // Sound the buzzer for 500ms at 1kHz
+  } else {
+      tft.fillRect(10, 70, 200, 20, ILI9341_BLACK);
+  }
+
+  // Enter deep sleep if ECG value falls below the threshold
+  if (ecgValue < ECG_THRESHOLD) {
+      Serial.println("Entering deep sleep...");
+      esp_sleep_enable_ext0_wakeup((gpio_num_t)WAKE_UP_PIN, HIGH);  // Enable wake-up on pin
+      esp_deep_sleep_start();  // Enter deep sleep mode
+  }
+  delay(DELAY_TIME);
+}
 
 // Function to compute moving average
 int getMovingAverage() {
