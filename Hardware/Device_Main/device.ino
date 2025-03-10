@@ -207,6 +207,29 @@ void max30102Read() {
   delay(100);
 
 }
+void Readpressure() {
+
+  blood_pressure = pressure_sensor.mmHg();
+
+  Firebase.RTDB.setString(&fbdo, liveData + "/blood_pressure", blood_pressure);
+  delay(100);
+
+  if (pressure_sensor.is_ready()) {
+    Serial.print("Pressure (kPa): ");
+    Serial.println(pressure_sensor.pascal());
+  } else {
+    Serial.println("Pressure sensor not found.");
+  }
+
+  Serial.print("ATM: ");
+  Serial.println(pressure_sensor.atm());
+  Serial.print("mmHg: ");
+  Serial.println(pressure_sensor.mmHg());
+  Serial.print("PSI: ");
+  Serial.println(pressure_sensor.psi());
+}
+
+
 void ecg() {
 
   while (readingActive2) {
