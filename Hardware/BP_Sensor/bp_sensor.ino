@@ -17,6 +17,7 @@
 
 #define READ_INTERVAL 60000  // Interval to send data to Firebase in milliseconds
 
+// global variables 
 unsigned long lastTime=0;
 long blood_pressure =0;
 HX710B pressure_sensor;
@@ -34,6 +35,15 @@ void iniWifi(){
     Serial.println("\nConnected to Wifi,IP:" +Wifi.localIP().toString());
 }
 
+// initialize the fire base 
+void initFirebase(){
+    config.api_key = API_KEY;
+    auth.user.email = USER_EMAIL; 
+    auth.user.password = USER_PASSWORD;
+    config.database_url = DATABASE_URL; 
+    Firebase.begin(&config,&auth);
+    fbdo.setResponseSize(4096); 
+}
 
 
 bool initPressureSensor (){
@@ -56,7 +66,7 @@ void checkWiFiStatus(){
 }
 
 
-
+// validate the sensor reading 
 bool isValidReading (long blood_pressure){
     return blood_pressure > 20 && blood_pressure < 200;
 }
