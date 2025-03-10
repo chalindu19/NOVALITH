@@ -398,8 +398,22 @@ int getMovingAverage() {
   return sum / MOVING_AVG_SIZE;
 }
 void historyData() {
-  
+  DB_history = History + "/" + String(timestamp);
+  json.set("/Prediction", Prediction);
+  json.set("/blood_pressure", String(blood_pressure));
+  json.set("/body_temp", String(bodytemp));
+  json.set("/ecg", String(bpm));
+  json.set("/heart_rate", String(beatAvg));
+  json.set("/kicks_count", String(kicks_count));
+  json.set("/pressure1", String(percent1));
+  json.set("/pressure2", String(percent2));
+  json.set("/pressure3", String(percent3));
+  json.set("/pressure4", String(percent4));
+  json.set("/timestamp", String(timestamp));
+  Serial.printf("Set json... %s\n", Firebase.RTDB.setJSON(&fbdo, DB_history.c_str(), &json) ? "ok" : fbdo.errorReason().c_str());
+
 }
+
 void dbData() {
   if (Firebase.RTDB.getString(&fbdo, liveData + "/Prediction")) {
     if (fbdo.dataType() == "string") {
