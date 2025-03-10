@@ -45,83 +45,111 @@ class _BusinessRegisterState extends State<BusinessRegister> {
 
     super.initState();
   }
-}
 
-@override
-Widget build(BuildContext context) {
-  return Scaffold(
-    backgroundColor: color6,
-    body: SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10.0),
-        child: Column(
-          children: [
-            CustomTextFormField(
-              controller: _name,
-              backgroundColor: color7,
-              hint: 'Full Name',
-              icon: Icons.person_outline,
-              textInputType: TextInputType.text,
-              obscureText: false,
-            ),
-            CustomTextFormField(
-              controller: _mobile,
-              backgroundColor: color7,
-              hint: 'Mobile Number',
-              icon: Icons.phone_android_outlined,
-              textInputType: TextInputType.phone,
-              obscureText: false,
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 5.0),
-              child: CustomTextFormField(
-                height: 5.0,
-                controller: _address,
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: color6,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10.0),
+          child: Column(
+            children: [
+              CustomTextFormField(
+                controller: _name,
                 backgroundColor: color7,
-                iconColor: colorPrimary,
-                isIconAvailable: true,
-                hint: 'Address',
-                icon: Icons.map_outlined,
-                maxLines: 3,
-                textInputType: TextInputType.multiline,
-                validation: (value) {
-                  final validator = Validator(
-                    validators: [const RequiredValidator()],
-                  );
-                  return validator.validate(
-                    label: register_validation_invalid_name,
-                    value: value,
-                  );                   
-                },
+                hint: 'Full Name',
+                icon: Icons.person_outline,
+                textInputType: TextInputType.text,
                 obscureText: false,
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 5.0),
-              child: CustomTextFormField(
-                height: 5.0,
-                controller: _password,
+              CustomTextFormField(
+                controller: _mobile,
                 backgroundColor: color7,
-                iconColor: colorPrimary,
-                isIconAvailable: true,
-                hint: 'Password',
-                icon: Icons.lock_open,
-                textInputType: TextInputType.text,
-                validation: (value) {
-                  final validator = Validator(
-                    validators: [const RequiredValidator()],
-                  );
-                  return validator.validate(
-                    label: register_validation_invalid_password,
-                    value: value,
-                  );
-                },
-                obscureText: true,
+                hint: 'Mobile Number',
+                icon: Icons.phone_android_outlined,
+                textInputType: TextInputType.phone,
+                obscureText: false,
               ),
-            ),
-          ],
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 5.0),
+                child: CustomTextFormField(
+                  height: 5.0,
+                  controller: _address,
+                  backgroundColor: color7,
+                  iconColor: colorPrimary,
+                  isIconAvailable: true,
+                  hint: 'Address',
+                  icon: Icons.map_outlined,
+                  maxLines: 3,
+                  textInputType: TextInputType.multiline,
+                  validation: (value) {
+                    final validator = Validator(
+                      validators: [const RequiredValidator()],
+                    );
+                    return validator.validate(
+                      label: register_validation_invalid_name,
+                      value: value,
+                    );                    
+                  },
+                  obscureText: false,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 5.0),
+                child: CustomTextFormField(
+                  height: 5.0,
+                  controller: _password,
+                  backgroundColor: color7,
+                  iconColor: colorPrimary,
+                  isIconAvailable: true,
+                  hint: 'Password',
+                  icon: Icons.lock_open,
+                  textInputType: TextInputType.text,
+                  validation: (value) {
+                    final validator = Validator(
+                      validators: [const RequiredValidator()],
+                    );
+                    return validator.validate(
+                      label: register_validation_invalid_password,
+                      value: value,
+                    );
+                  },
+                  obscureText: true,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 5.0),
+                child: CustomTextFormField(
+                  height: 5.0,
+                  controller: _confirm_password,
+                  backgroundColor: color7,
+                  iconColor: colorPrimary,
+                  isIconAvailable: true,
+                  hint: 'Confirm Password',
+                  icon: Icons.lock_open,
+                  textInputType: TextInputType.text,
+                  validation: (value) {
+                    final validator = Validator(
+                      validators: [const RequiredValidator()],
+                    );
+
+                    if (value != _password.text) {
+                      return register_validation_passwords_does_not_match;
+                    }
+
+                    return validator.validate(
+                      label: register_validation_invalid_retype_password,
+                      value: value,
+                    );
+                  },
+                  obscureText: true,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
-    ),
-  );
+    );
+  }
 }
