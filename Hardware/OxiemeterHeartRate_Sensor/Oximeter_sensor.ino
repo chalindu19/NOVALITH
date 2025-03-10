@@ -12,9 +12,10 @@
 #define USER_PASSWORD " "
 #define DATABASE_URL " "
 
-
+// read the interval 
 #define READ_INTERVAL 60000 
 
+// global variables 
 unsigned long lastTime = 0;
 int bpm = 0;
 MAX30105 particleSensor ;
@@ -42,7 +43,7 @@ void initFirebase(){
     fbdo.setResponseSize(4096); 
 }
 
-
+// check ox sensor connection 
 bool initOximeter(){
     if (!particleSensor.begin()){
         Serial.println("MAX30102 not found.Please check power");
@@ -87,18 +88,18 @@ void checkWiFiStatus(){
     }
 }
 
-
+// validate sensor reading 
 bool isValidReading(int bpm){
     return bpm > 0 && bpm < 200 ; 
 }
 
-
+// log sensor for debugging 
 void logSensorData(int bpm){
     Serial.print("heart rate(bpm):");
     Serial.println(bpm);  
 }
 
-
+ // firebase data handling 
 bool updateFirebase(String path,String value){
     return Firebase.RTDB.setString(&fbdo,path,value);
 }
@@ -121,3 +122,50 @@ void handleFirebaseErrors(){
         initFirebase();
     }
 }
+
+
+// Debugging Message
+void debugMessage() {
+    Serial.println("System running smoothly...");
+}
+
+
+// Setup Function
+void setup() {
+    Serial.begin(9600);
+  
+    initWiFi();
+    initFirebase();
+    enableWatchdogTimer();
+    enablePowerSavingMode();
+  
+    if (!initOximeter()) {
+      Serial.println("Sensor initialization failed. Restarting...");
+      ESP.restart();
+    }
+}
+
+
+
+// Main Loop
+void loop() {
+    checkWiFiStatus();
+  
+    unsigned long currentMillis = millis();
+    if (currentMillis - lastTime >= READ_INTERVAL) {
+      lastTime = currentMillis;
+  
+      long irValue = readSensorData();
+      bpm = calculateHeartRate(irValue);
+  
+      if (isValidReading(bpm)) {
+        sendDataToFirebase(bpm);
+        logSensorData(bpm);
+      }
+    }
+    
+    handleFirebaseErrors();
+    debugMessage();
+    delay(5000);
+}  
+
