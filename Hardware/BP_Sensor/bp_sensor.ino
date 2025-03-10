@@ -130,20 +130,22 @@ void setup(){
 
 
 void loop(){
-    checkWiFiStatus();
+    blood_pressure = pressure_sensor.mmHg();
 
-    unsigned long currentMillis = millis();
-    if (currentMillis-lastTime>= READ_INTERVAL){
-        lastTime = currentMillis;
+  Firebase.RTDB.setString(&fbdo, liveData + "/blood_pressure", blood_pressure);
+  delay(100);
 
-        long blood_pressure = readSensorData();
-        if(isValidReading(blood_pressure)){
-            sendDataToFirebase(blood_pressure);
-            logSensorData(blood_pressure);
-        }
-    }
-    
-    handleFirebaseErrors();
-    debugMessage();
-    delay(5000);
+  if (pressure_sensor.is_ready()) {
+    Serial.print("Pressure (kPa): ");
+    Serial.println(pressure_sensor.pascal());
+  } else {
+    Serial.println("Pressure sensor not found.");
+  }
+
+  Serial.print("ATM: ");
+  Serial.println(pressure_sensor.atm());
+  Serial.print("mmHg: ");
+  Serial.println(pressure_sensor.mmHg());
+  Serial.print("PSI: ");
+  Serial.println(pressure_sensor.psi());
 }
