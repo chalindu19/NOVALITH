@@ -152,7 +152,10 @@ void setup() {
   auth.user.password = USER_PASSWORD;
 
   // Assign the RTDB URL (required)
- 
+  config.database_url = DATABASE_URL;
+
+  Firebase.reconnectWiFi(true);
+  fbdo.setResponseSize(4096);
 
   // Assign the callback function for the long running token generation task */
   config.token_status_callback = tokenStatusCallback; //see addons/TokenHelper.h
@@ -174,27 +177,10 @@ void setup() {
   Serial.print("User UID: ");
   Serial.println(uid);
 }
-<<<<<<< HEAD
-<<<<<<< HEAD
-void readTempbody() {
-  bodytemp = mlx.readObjectTempC();
-  Serial.print("Object = ");
-  Serial.print(mlx.readObjectTempC());
-  Serial.println("*C");
-
-  Firebase.RTDB.setString(&fbdo, liveData + "/body_temp", bodytemp);
-  delay(100);
-=======
-=======
->>>>>>> 6fa9f3ff6dd185994ba6744b6a13b29388cccedd
 
 // Function to read raw ADC value
 int readSensorRaw(uint8_t channel) {
   return ads.readADC_SingleEnded(channel);
-<<<<<<< HEAD
->>>>>>> ee19f59d28b3d9b79cec5fedc2ed81720ca66c29
-=======
->>>>>>> 6fa9f3ff6dd185994ba6744b6a13b29388cccedd
 }
 
 // Function to convert raw ADC value to percentage (0 - 100%)
@@ -214,7 +200,7 @@ void loop() {
   }
   if ((millis() - lastTime2) > timerDelay2) {
     historyData();
-    Firebase.RTDB.setString(&fbdo, liveData + "/isNew", "true");
+    
     lastTime2 = millis();
   }
 
@@ -241,6 +227,7 @@ void loop() {
   if (readingActive) {
     max30102Read();
   }
+
   Readpressure();
   readTempbody();
 
@@ -281,7 +268,7 @@ void loop() {
 
   if (millis() - kick_previousMillis >= kick_interval) {
     kick_previousMillis = millis();
-    Firebase.RTDB.setString(&fbdo, liveData + "/kicks_count", kicks_count);
+    
     delay(200);
     kicks_count = 0;
     Serial.println("Kicks count reset to 0");
@@ -292,23 +279,14 @@ void loop() {
   Serial.print("Sensor 3: "); Serial.print(percent3); Serial.print("% | ");
   Serial.print("Sensor 4: "); Serial.print(percent4); Serial.println("%");
 
-  Firebase.RTDB.setString(&fbdo, liveData + "/pressure1", percent1);
-  delay(100);
-  Firebase.RTDB.setString(&fbdo, liveData + "/pressure2", percent2);
-  delay(100);
-  Firebase.RTDB.setString(&fbdo, liveData + "/pressure3", percent3);
-  delay(100);
-  Firebase.RTDB.setString(&fbdo, liveData + "/pressure4", percent4);
-  delay(100);
-
-}
-
+  
 
 }
 void Readpressure() {
+
   blood_pressure = pressure_sensor.mmHg();
 
-  Firebase.RTDB.setString(&fbdo, liveData + "/blood_pressure", blood_pressure);
+  
   delay(100);
 
   if (pressure_sensor.is_ready()) {
@@ -324,13 +302,24 @@ void Readpressure() {
   Serial.println(pressure_sensor.mmHg());
   Serial.print("PSI: ");
   Serial.println(pressure_sensor.psi());
-
-
 }
 void readTempbody() {
- 
-}
+  bodytemp = mlx.readObjectTempC();
+  Serial.print("Object = ");
+  Serial.print(mlx.readObjectTempC());
+  Serial.println("*C");
 
+  if(bodytemp > 32 && sta5==0){
+    sta5==1;
+    Notify_Message="temp high";
+    notify();
+  }else if(bodytemp < 32 && sta5==1){
+     sta5==0;
+  }
+
+  
+  delay(100);
+}
 void max30102Read() {
 
   irValue = particleSensor.getIR();
@@ -395,11 +384,9 @@ void max30102Read() {
   }
 
   Serial.println();
-  Firebase.RTDB.setString(&fbdo, liveData + "/heart_rate", beatAvg);
+  
   delay(100);
 }
-
-
 void ecg() {
 
   while (readingActive2) {
@@ -459,7 +446,7 @@ void ecg() {
     Serial.print(" | BPM: ");
     Serial.println(bpm);
 
-    Firebase.RTDB.setString(&fbdo, liveData + "/ecg", bpm);
+    
 
     delay(1);
   }
@@ -488,9 +475,7 @@ void historyData() {
   json.set("/pressure4", String(percent4));
   json.set("/timestamp", String(timestamp));
   Serial.printf("Set json... %s\n", Firebase.RTDB.setJSON(&fbdo, DB_history.c_str(), &json) ? "ok" : fbdo.errorReason().c_str());
-
 }
-
 void dbData() {
   if (Firebase.RTDB.getString(&fbdo, liveData + "/Prediction")) {
     if (fbdo.dataType() == "string") {
@@ -499,12 +484,11 @@ void dbData() {
   }
   else {
     Serial.println(fbdo.errorReason());
-  } 
+  }
 }
 void notify() {
   Firebase.RTDB.setBool(&fbdo, notification + "/isNew", true);
   delay(200);
   Firebase.RTDB.setString(&fbdo, notification + "/message", Notify_Message);
   delay(200);
-  
 }
