@@ -180,9 +180,9 @@ void ecg() {
           tft.setTextColor(ILI9341_RED);
           tft.print("WARNING: Leads Off!");
           tft.setTextColor(ILI9341_WHITE);
-      } else {
+        } else {
           tft.fillRect(10, 70, 200, 20, ILI9341_BLACK); // Clear warning if leads are on
-      }
+        }
       }
   }
 
