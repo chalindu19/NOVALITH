@@ -99,6 +99,11 @@ void logSensorData(int bpm){
 }
 
 
+bool updateFirebase(String path,String value){
+    return Firebase.RTDB.setString(&fbdo,path,value);
+}
+
+
 void enableWatchdogTimer(){
     esp_task_wdt_init(10, true);
     esp_task_wdt_add(NULL);
@@ -107,7 +112,12 @@ void enableWatchdogTimer(){
 
 void enablePowerSavingMode() {
     WiFi.setSleep(true);
-  }
+}
 
   
-
+void handleFirebaseErrors(){
+    if (!Firebase.ready()){
+        Serial.println("firebase disconnected ");
+        initFirebase();
+    }
+}
