@@ -1,5 +1,6 @@
 #include <WiFi.h>
 #include <Firebase_ESP_Client.h>
+#include <time.h>
 
 #define WIFI_SSID "Galaxy s9"
 #define WIFI_PASSWORD "839747650"
@@ -12,46 +13,22 @@ FirebaseData fbdo;
 FirebaseAuth auth;
 FirebaseConfig config;
 
-#define PRESSURE_SENSOR_PIN 34  // ADC pin for the FSR402 sensor
+#define PRESSURE_SENSOR_PIN 34  
 
-void tokenStatusCallback(TokenInfo info) {
-    Serial.printf("Token Info: type = %s, status = %s\n", 
-                  info.token_type.c_str(), 
-                  info.status.c_str());
-}
+unsigned long lastUploadTime = 0;
+const int uploadInterval = 5000;  
 
-void initWiFi() {
-    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-    Serial.println("Connecting to WiFi...");
-    while (WiFi.status() != WL_CONNECTED) {
-        Serial.print('.');
-        delay(1000);
+// Function to get timestamp
+String getTimestamp() {
+    time_t now;
+    struct tm timeinfo;
+    if (!getLocalTime(&timeinfo)) {
+        Serial.println("Failed to obtain time");
+        return "Unknown";
     }
-    Serial.println("\nConnected to WiFi!");
-    Serial.println(WiFi.localIP());
-}
-
-void initializeFirebase() {
-    config.api_key = API_KEY;
-    auth.user.email = USER_EMAIL;
-    auth.user.password = USER_PASSWORD;
-    config.database_url = DATABASE_URL;
-
-    Firebase.reconnectWiFi(true);
-    fbdo.setResponseSize(4096);
-    config.token_status_callback = tokenStatusCallback;
-    config.max_token_generation_retry = 5;
-
-    Firebase.begin(&config, &auth);
-    
-    Serial.println("Getting User UID...");
-    while (auth.token.uid == "") {
-        Serial.print('.');
-        delay(1000);
-    }
-
-    Serial.print("\nUser UID: ");
-    Serial.println(auth.token.uid.c_str());
+    char buffer[30];
+    strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", &timeinfo);
+    return String(buffer);
 }
 
 int readPressureSensor() {
@@ -61,13 +38,14 @@ int readPressureSensor() {
     return pressureValue;
 }
 
-// New Function: Uploads sensor data to Firebase
+// Upload sensor data to Firebase
 void uploadData(int pressure) {
     if (Firebase.ready()) {
         String path = "/SensorData/" + String(auth.token.uid);
         
         FirebaseJson json;
         json.set("pressure", pressure);
+        json.set("timestamp", getTimestamp());
 
         if (Firebase.updateNode(fbdo, path, json)) {
             Serial.println("Data uploaded successfully!");
@@ -87,7 +65,12 @@ void setup() {
 }
 
 void loop() {
-    int pressure = readPressureSensor();
-    uploadData(pressure);
-    delay(5000);
+    unsigned long currentTime = millis();
+
+    if (currentTime - lastUploadTime >= uploadInterval) {
+        lastUploadTime = currentTime;
+        
+        int pressure = readPressureSensor();
+        uploadData(pressure);
+    }
 }
