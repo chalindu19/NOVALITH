@@ -132,59 +132,63 @@ void max30102Read() {
 
 }
 void ecg() {
-
   while (readingActive2) {
-
     currentMillis = millis();
 
     if (currentMillis - readStartTime2 >= READ_DURATION2) {
-      readingActive2 = false;
-      lastReadTime2 = currentMillis;
-      Serial.println("ECG Heart rate reading completed.");
+        readingActive2 = false;
+        lastReadTime2 = currentMillis;
+        Serial.println("ECG Heart rate reading completed.");
     }
 
+    int ecgValue = analogRead(AD8232_SIGNAL);
+    Serial.print("ECG: ");
+    Serial.println(ecgValue);
+
+    // Display ECG value on TFT
+    tft.fillRect(10, 30, 200, 20, ILI9341_BLACK);
+    tft.setCursor(10, 30);
+    tft.print("ECG: ");
+    tft.print(ecgValue);
+
+    // Detect heart rate
     if (ecgValue > ECG_THRESHOLD && (ecgValue - lastECGValue) > SPIKE_THRESHOLD) {
-      unsigned long currentTime = millis();
-      unsigned long timeDiff = currentTime - lastPeakTime;
+        unsigned long currentTime = millis();
+        if (currentTime - lastPeakTime > PEAK_DELAY) {
+            int heartRate = 60000 / (currentTime - lastPeakTime);
+            Serial.print("HR: ");
+            Serial.println(heartRate);
 
-      if (timeDiff > 300) {
-          int heartRate = 60000 / timeDiff;
-          
-          // Store the value in the buffer
-          heartRateBuffer[bufferIndex] = heartRate;
-          bufferIndex = (bufferIndex + 1) % 5;
+            // Display heart rate on TFT
+            tft.fillRect(10, 50, 200, 20, ILI9341_BLACK);
+            tft.setCursor(10, 50);
+            tft.print("HR: ");
+            tft.print(heartRate);
+            tft.print(" BPM");
 
-          // Calculate rolling average BPM
-          int avgHeartRate = 0;
-          for (int i = 0; i < 5; i++) {
-              avgHeartRate += heartRateBuffer[i];
-          }
-          avgHeartRate /= 5;
+            lastPeakTime = currentTime;
 
-          Serial.print("Average Heart Rate: ");
-          Serial.print(avgHeartRate);
-          Serial.println(" BPM");
-
-          lastPeakTime = currentTime;
-          
-        if (digitalRead(LO_PLUS) == HIGH || digitalRead(LO_MINUS) == HIGH) {
-          Serial.println("WARNING: Leads Off!");
+            // Send heart rate data to Firebase
+            Firebase.RTDB.setString(&fbdo, liveData + "/ecg", heartRate);
         }
+    }
 
-        delay(DELAY_TIME);
+    // Leads-off detection
+    if (digitalRead(LO_PLUS) || digitalRead(LO_MINUS)) {
+        Serial.println("WARNING: Leads Off!");
+        tft.fillRect(10, 70, 200, 20, ILI9341_BLACK);
+        tft.setCursor(10, 70);
+        tft.setTextColor(ILI9341_RED);
+        tft.print("Leads Off!");
+        tft.setTextColor(ILI9341_WHITE);
+    } else {
+        tft.fillRect(10, 70, 200, 20, ILI9341_BLACK);
+    }
 
-        if (digitalRead(LO_PLUS) == HIGH || digitalRead(LO_MINUS) == HIGH) {
-          Serial.println("WARNING: Leads Off!");
-          tft.fillRect(10, 70, 200, 20, ILI9341_BLACK); // Clear previous warning
-          tft.setCursor(10, 70);
-          tft.setTextColor(ILI9341_RED);
-          tft.print("WARNING: Leads Off!");
-          tft.setTextColor(ILI9341_WHITE);
-        } else {
-          tft.fillRect(10, 70, 200, 20, ILI9341_BLACK); // Clear warning if leads are on
-        }
-      }
-  }
+    lastECGValue = ecgValue;
+    delay(1);
+    }
+}
 
     // Print data
     Serial.print("ECG: ");
