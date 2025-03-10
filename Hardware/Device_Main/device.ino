@@ -229,13 +229,33 @@ void loop() {
 
 }
 void Readpressure() {
+  blood_pressure = pressure_sensor.mmHg();
+
+  Firebase.RTDB.setString(&fbdo, liveData + "/blood_pressure", blood_pressure);
+  delay(100);
+
+  if (pressure_sensor.is_ready()) {
+    Serial.print("Pressure (kPa): ");
+    Serial.println(pressure_sensor.pascal());
+  } else {
+    Serial.println("Pressure sensor not found.");
+  }
+
+  Serial.print("ATM: ");
+  Serial.println(pressure_sensor.atm());
+  Serial.print("mmHg: ");
+  Serial.println(pressure_sensor.mmHg());
+  Serial.print("PSI: ");
+  Serial.println(pressure_sensor.psi());
 
 
 }
 void readTempbody() {
 
 }
+
 void max30102Read() {
+
   irValue = particleSensor.getIR();
 
   if (irValue < 50000) {
@@ -300,9 +320,8 @@ void max30102Read() {
   Serial.println();
   Firebase.RTDB.setString(&fbdo, liveData + "/heart_rate", beatAvg);
   delay(100);
-
- 
 }
+
 
 void ecg() {
 
