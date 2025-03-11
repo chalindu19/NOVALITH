@@ -38,7 +38,7 @@ class HomeDrawer extends StatelessWidget {
                           width: 60.0,
                           child: ClipOval(
                             child: Image.asset(
-                              user,
+                              'assets/images/user.png',
                               fit: BoxFit.cover,
                             ),
                           ),

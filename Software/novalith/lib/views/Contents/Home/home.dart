@@ -8,7 +8,7 @@ import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:novalith/Models/Utils/Utils.dart';
 import 'package:novalith/views/Contents/Home/drawer.dart';
-import 'package:novalith/views/Widgets/graph_view.dart';
+import 'package:novalith/views/Widgets/custom_ecg_chart.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
