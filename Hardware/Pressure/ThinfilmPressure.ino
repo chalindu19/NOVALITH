@@ -1,76 +1,74 @@
+#include <Arduino.h>
 #include <WiFi.h>
-#include <Firebase_ESP_Client.h>
-#include <time.h>
+#include <FirebaseESP32.h>
 
-#define WIFI_SSID "Galaxy s9"
-#define WIFI_PASSWORD "839747650"
-#define API_KEY "AIzaSyAMwYHbDkd9uQDOjabL-rSwZ_GwkDc3ZJU"
-#define USER_EMAIL "user@gmail.com"
-#define USER_PASSWORD "User@123"
-#define DATABASE_URL "https://novalith-c49fb-default-rtdb.firebaseio.com"
+// Firebase configuration
+#define FIREBASE_HOST "your-project.firebaseio.com"
+#define FIREBASE_AUTH "your-database-secret"
 
-FirebaseData fbdo;
-FirebaseAuth auth;
-FirebaseConfig config;
+// Wi-Fi credentials
+#define WIFI_SSID "your-SSID"
+#define WIFI_PASSWORD "your-WiFi-password"
 
-#define PRESSURE_SENSOR_PIN 34  
+// Define the analog input pin for the pressure sensor
+#define PRESSURE_SENSOR_PIN 34  // GPIO34 (ESP32 ADC pin)
 
-unsigned long lastUploadTime = 0;
-const int uploadInterval = 5000;  
+// Firebase object
+FirebaseData firebaseData;
 
-// Function to get timestamp
-String getTimestamp() {
-    time_t now;
-    struct tm timeinfo;
-    if (!getLocalTime(&timeinfo)) {
-        Serial.println("Failed to obtain time");
-        return "Unknown";
-    }
-    char buffer[30];
-    strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", &timeinfo);
-    return String(buffer);
+// Pressure sensor variable
+int pressureValue = 0;
+
+// Function to connect to Wi-Fi
+void connectToWiFi() {
+  Serial.print("Connecting to WiFi");
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  
+  Serial.println("Connected to WiFi");
 }
 
-int readPressureSensor() {
-    int pressureValue = analogRead(PRESSURE_SENSOR_PIN);
-    Serial.print("Pressure Sensor Reading: ");
-    Serial.println(pressureValue);
-    return pressureValue;
-}
-
-// Upload sensor data to Firebase
-void uploadData(int pressure) {
-    if (Firebase.ready()) {
-        String path = "/SensorData/" + String(auth.token.uid);
-        
-        FirebaseJson json;
-        json.set("pressure", pressure);
-        json.set("timestamp", getTimestamp());
-
-        if (Firebase.updateNode(fbdo, path, json)) {
-            Serial.println("Data uploaded successfully!");
-        } else {
-            Serial.print("Firebase upload failed: ");
-            Serial.println(fbdo.errorReason());
-        }
-    } else {
-        Serial.println("Firebase not ready, skipping upload...");
-    }
+// Function to initialize Firebase
+void initFirebase() {
+  Firebase.begin(FIREBASE_HOST, FIREBASE_AUTH);
+  Firebase.reconnectWiFi(true); // Automatically reconnect if the connection drops
 }
 
 void setup() {
-    Serial.begin(115200);
-    initWiFi();
-    initializeFirebase();
+  // Start Serial Monitor
+  Serial.begin(115200);
+
+  // Connect to Wi-Fi
+  connectToWiFi();
+
+  // Initialize Firebase
+  initFirebase();
+
+  // Configure the pressure sensor pin as an input
+  pinMode(PRESSURE_SENSOR_PIN, INPUT);
+
+  Serial.println("Thin Film Pressure Sensor Initialized.");
 }
 
 void loop() {
-    unsigned long currentTime = millis();
+  // Read the pressure sensor value (ADC)
+  pressureValue = analogRead(PRESSURE_SENSOR_PIN);
 
-    if (currentTime - lastUploadTime >= uploadInterval) {
-        lastUploadTime = currentTime;
-        
-        int pressure = readPressureSensor();
-        uploadData(pressure);
-    }
+  // Display the pressure value on Serial Monitor
+  Serial.print("Pressure Sensor Value: ");
+  Serial.println(pressureValue);
+
+  // Send data to Firebase
+  if (Firebase.setInt(firebaseData, "/sensor/pressure", pressureValue)) {
+    Serial.println("Pressure value updated in Firebase.");
+  } else {
+    Serial.println("Error updating Firebase: " + firebaseData.errorReason());
+  }
+
+  // Wait before taking the next reading
+  delay(5000); // 5 seconds delay
 }
