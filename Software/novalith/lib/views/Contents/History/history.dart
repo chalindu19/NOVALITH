@@ -1,6 +1,11 @@
+import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:novalith/Models/Utils/Colors.dart';
+import 'package:novalith/Models/Utils/Common.dart';
+import 'package:novalith/Models/Utils/FirebaseStructure.dart';
 import 'package:novalith/Models/Utils/Routes.dart';
+import 'package:novalith/Models/Utils/Utils.dart';
+import 'package:intl/intl.dart';
 
 class History extends StatefulWidget {
   const History({super.key});
@@ -10,22 +15,28 @@ class History extends StatefulWidget {
 }
 
 class _HistoryState extends State<History> {
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  final DatabaseReference _databaseReference = FirebaseDatabase.instance.ref();
+
+  List<dynamic> list = [];
+
+  TextEditingController start = TextEditingController();
+  TextEditingController end = TextEditingController();
+  bool useFilters = false;
+  bool showFilters = false;
+
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: color7,
-      appBar: AppBar(
-        backgroundColor: colorPrimary,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
-          onPressed: () {
-            Routes(context: context).back();
-          },
-        ),
-        title: const Text("History", style: TextStyle(color: Colors.white)),
-        centerTitle: true,
-      ),
-      body: const Center(child: Text("History Data Will Be Shown Here")),
-    );
+  void initState() {
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+        statusBarColor: colorPrimary,
+        statusBarBrightness: Brightness.dark,
+        systemNavigationBarColor: colorPrimary,
+        statusBarIconBrightness: Brightness.dark));
+
+    Future.delayed(Duration.zero, () {
+      getData();
+    });
+    super.initState();
   }
 }
