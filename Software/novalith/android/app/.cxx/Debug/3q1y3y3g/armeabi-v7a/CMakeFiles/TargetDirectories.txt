@@ -1,0 +1,2 @@
+F:/SDGP/SDGP main repo/NOVALITH/Software/novalith/android/app/.cxx/Debug/3q1y3y3g/armeabi-v7a/CMakeFiles/edit_cache.dir
+F:/SDGP/SDGP main repo/NOVALITH/Software/novalith/android/app/.cxx/Debug/3q1y3y3g/armeabi-v7a/CMakeFiles/rebuild_cache.dir

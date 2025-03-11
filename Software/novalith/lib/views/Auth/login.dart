@@ -60,7 +60,7 @@ class _LoginState extends State<Login> {
                       alignment: Alignment.center,
                       child: SizedBox(
                         width: displaySize.width * 0.4,
-                        child: Image.asset(logo),
+                        child: Image.asset('assets/icon/icon.png',height: 150,),
                       )),
                   const SizedBox(
                     height: 20.0,
