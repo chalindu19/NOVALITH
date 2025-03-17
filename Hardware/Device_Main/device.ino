@@ -321,7 +321,6 @@ void max30102Read() {
   Firebase.RTDB.setString(&fbdo, liveData + "/heart_rate", beatAvg);
   delay(100);
 }
-<<<<<<< HEAD
 void Readpressure() {
 
   blood_pressure = pressure_sensor.mmHg();
@@ -343,8 +342,6 @@ void Readpressure() {
   Serial.print("PSI: ");
   Serial.println(pressure_sensor.psi());
 }
-=======
->>>>>>> dev-branch-hardware
 
 
 void ecg() {
