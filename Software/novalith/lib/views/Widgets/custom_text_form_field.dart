@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:novalith/Models/Utils/Colors.dart';
 
+// A custom reusable text form field widget with optional icon, label, and validation
 class CustomTextFormField extends StatelessWidget {
+  // Properties for customization
   double height = 5.0;
   String hint;
   IconData icon;
@@ -35,6 +37,7 @@ class CustomTextFormField extends StatelessWidget {
   Widget build(BuildContext context) {
     return Wrap(
       children: [
+        // Displays a label if provided
         (label != null)
             ? Padding(
                 padding: const EdgeInsets.only(bottom: 5.0),
@@ -47,18 +50,23 @@ class CustomTextFormField extends StatelessWidget {
                 ),
               )
             : const SizedBox.shrink(),
+        
+        // The main container for the text field
         Container(
           decoration: BoxDecoration(
               color: backgroundColor, borderRadius: BorderRadius.circular(5.0)),
           padding: EdgeInsets.symmetric(vertical: height, horizontal: 10.0),
           child: Row(
             children: [
+              // Displays an icon if isIconAvailable is true
               (isIconAvailable == true)
                   ? Icon(
                       icon,
                       color: iconColor,
                     )
                   : const SizedBox.shrink(),
+              
+              // The actual text field
               Flexible(
                   child: TextFormField(
                 controller: controller,

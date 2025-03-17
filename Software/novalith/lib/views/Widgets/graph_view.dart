@@ -4,11 +4,15 @@ import 'package:novalith/Models/Utils/Colors.dart';
 import 'package:novalith/Models/Utils/Common.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
+// GraphView Widget for displaying multiple data sets using Syncfusion charts
 class GraphView extends StatefulWidget {
+  // Dynamic lists to hold chart data for up to four datasets
   dynamic chartData1 = [];
   dynamic chartData2 = [];
   dynamic chartData3 = [];
   dynamic chartData4 = [];
+
+  // Labels for each dataset
   dynamic label1, label2, label3, label4;
 
   GraphView(
@@ -36,12 +40,19 @@ class GraphView extends StatefulWidget {
 }
 
 class _GraphViewState extends State<GraphView> {
+  // List to store formatted chart data
   List<ChartData> chartData1 = [];
   List<ChartData> chartData2 = [];
   List<ChartData> chartData3 = [];
   List<ChartData> chartData4 = [];
+
+  // Labels for each dataset
   dynamic label1, label2, label3, label4;
+
+  // List to store the chart series
   final List<CartesianSeries> chartSeries = [];
+  
+  // List to track maximum values 
   final List<double> maxList = [];
 
   _GraphViewState(
@@ -56,11 +67,12 @@ class _GraphViewState extends State<GraphView> {
 
   final _scaffoldKey = GlobalKey<ScaffoldState>();
 
+  // Top space calculation for layout adjustment
   final double topSpace = displaySize.width * 0.4;
 
   @override
   void initState() {
-    finializeData();
+    finializeData(); // Process and add data to the chart series
     super.initState();
   }
 
@@ -75,6 +87,7 @@ class _GraphViewState extends State<GraphView> {
           height: displaySize.height,
           child: Column(
             children: [
+              // Top bar with title and close button
               Expanded(
                   flex: 0,
                   child: Container(
@@ -108,6 +121,7 @@ class _GraphViewState extends State<GraphView> {
                       ),
                     ),
                   )),
+              // Display the chart if there is data
               Expanded(
                   child: (chartSeries.isNotEmpty)
                       ? Align(
@@ -251,6 +265,7 @@ class _GraphViewState extends State<GraphView> {
     ));
   }
 
+  // Function to process and add data to chart series
   void finializeData() {
     setState(() {
       if (chartData1.isNotEmpty) {
@@ -289,6 +304,7 @@ class _GraphViewState extends State<GraphView> {
   }
 }
 
+// Data model for the chart
 class ChartData {
   ChartData(this.x, this.y);
   final String x;

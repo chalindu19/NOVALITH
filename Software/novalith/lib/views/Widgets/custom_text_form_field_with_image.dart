@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:novalith/Models/Utils/Colors.dart';
 
 class CustomTextFieldWithImage extends StatefulWidget {
+  // Declare instance variables for customization
   double height = 5.0;
   String hint;
   String icon_img;
@@ -12,6 +13,7 @@ class CustomTextFieldWithImage extends StatefulWidget {
   bool obscureText;
   TextEditingController controller;
 
+  // Constructor to initialize the widget with required properties
   CustomTextFieldWithImage(
       {Key? key,
       required this.height,
@@ -40,6 +42,7 @@ class CustomTextFieldWithImage extends StatefulWidget {
 }
 
 class _CustomTextFieldWithImageState extends State<CustomTextFieldWithImage> {
+  // Declare instance variable for the state class
   double height = 5.0;
   String hint;
   String icon_img;
@@ -69,21 +72,23 @@ class _CustomTextFieldWithImageState extends State<CustomTextFieldWithImage> {
       padding: EdgeInsets.symmetric(vertical: height, horizontal: 10.0),
       child: Row(
         children: [
+          // Display an icon image if available
           (isIconAvailable == true)
               ? Image.asset(
                   icon_img,
                 )
               : const SizedBox.shrink(),
+          // Flexible TextFormField to handle user input
           Flexible(
               child: TextFormField(
             controller: controller,
-            obscureText: obscureText,
-            cursorColor: color3,
+            obscureText: obscureText, // Control visibility of input text
+            cursorColor: color3, // Define cursor color
             keyboardType: textInputType,
-            validator: validation,
+            validator: validation, // Assign validation function
             decoration: InputDecoration(
                 hintStyle: TextStyle(color: color8),
-                label: Text(hint),
+                label: Text(hint), // Input label
                 labelStyle:
                     TextStyle(color: color8, fontFamily: 'Raleway-SemiBold'),
                 border: InputBorder.none,

@@ -6,8 +6,12 @@ import 'package:novalith/Models/Utils/Utils.dart';
 import 'package:novalith/Views/Auth/Login.dart';
 import 'package:flutter/material.dart';
 
+// Controller for handling authentication-related operations
 class AuthController {
+
+  // Firebase Authentication instance
   static late FirebaseAuth _auth;
+  // Firebase Realtime Database reference
   late DatabaseReference _databaseRef;
 
   AuthController() {
@@ -15,6 +19,7 @@ class AuthController {
     _databaseRef = FirebaseDatabase.instance.ref();
   }
 
+  // Registers a new user with email and password
   Future<bool> doRegistration(data) async {
     bool check = true;
 
@@ -24,8 +29,10 @@ class AuthController {
       password: data['password'],
     )
         .then((value) async {
+      // Remove password before storing user data
       data.remove('password');
 
+      // Save user data in the database
       await _databaseRef
           .child(FirebaseStructure.users)
           .child(value.user!.uid)
@@ -40,6 +47,7 @@ class AuthController {
     return check;
   }
 
+  // Logs in an existing user using email and password
   Future<bool> doLogin(data) async {
     bool check = true;
 
@@ -50,7 +58,8 @@ class AuthController {
     )
         .catchError((e) {
       check = false;
-
+      
+      // Error message based on FirebaseAuthException codes
       late String errorMessage;
 
       switch (e.code) {
@@ -68,18 +77,21 @@ class AuthController {
 
       CustomUtils.showToast(errorMessage);
     }).then((value) async {
+      // Fetch user data if login is successful
       CustomUtils.loggedInUser = await getUserData();
     });
 
     return Future.value(check);
   }
 
+  // Logs out the current user and navigates to the login screen
   Future<void> logout(context) async {
     await _auth.signOut();
     Navigator.pushReplacement(
         context, MaterialPageRoute(builder: (_) => const Login()));
   }
-
+  
+  // Retrieves user data from Firebase Realtime Database
   Future<LoggedUser> getUserData() async {
     late LoggedUser user;
     await _databaseRef
@@ -102,11 +114,13 @@ class AuthController {
     return user;
   }
 
+  // Checks if a user is logged in
   Future<bool> doLoginCheck() async {
     bool check = false;
     return check;
   }
 
+  // Sends a password reset email to the provided email address
   Future<dynamic> sendPasswordResetLink(context, email) async {
     dynamic check = false;
     _auth.sendPasswordResetEmail(email: email).then((value) => check = true);
