@@ -3,6 +3,7 @@ import 'package:flutter_datetime_picker_plus/flutter_datetime_picker_plus.dart';
 import 'package:novalith/Models/Utils/Colors.dart';
 import 'package:novalith/Models/Utils/Utils.dart';
 
+// A custom text field widget with a date-time picker
 class CustomTextDateTimeChooser extends StatelessWidget {
   double height = 5.0;
   String hint;
@@ -35,6 +36,7 @@ class CustomTextDateTimeChooser extends StatelessWidget {
   Widget build(BuildContext context) {
     return Wrap(
       children: [
+        // Display label if provided
         (label != null)
             ? Padding(
                 padding: const EdgeInsets.only(bottom: 5.0),
@@ -47,28 +49,38 @@ class CustomTextDateTimeChooser extends StatelessWidget {
                 ),
               )
             : const SizedBox.shrink(),
+        
+        // Container for the input field
         Container(
           decoration: BoxDecoration(
               color: backgroundColor, borderRadius: BorderRadius.circular(5.0)),
           padding: EdgeInsets.symmetric(vertical: height, horizontal: 10.0),
           child: Row(
             children: [
+              // Display icon if enabled
               (isIconAvailable == true)
                   ? Icon(
                       icon,
                       color: iconColor,
                     )
                   : const SizedBox.shrink(),
+
+              // Flexible text field with date-time picker functionality
               Flexible(
                   child: TextFormField(
                 onTap: () async {
+                  // Prevents keyboard from showing up
                   DateTime date = DateTime(1900);
                   FocusScope.of(context).requestFocus(FocusNode());
+
+                  // Shows the date-time picker dialog
                   DatePicker.showDateTimePicker(context,
                       showTitleActions: true,
                       maxTime: DateTime.now(), onChanged: (DateTime date) {
+                    // Updates text field with selected date
                     controller.text = CustomUtils.formatDateTime(date);
                   }, onConfirm: (date) {
+                    // Updates text field when date is confirmed
                     controller.text = CustomUtils.formatDateTime(date);
                   }, currentTime: DateTime.now(), locale: LocaleType.en);
                 },

@@ -3,7 +3,9 @@ import 'package:flutter_datetime_picker_plus/flutter_datetime_picker_plus.dart';
 import 'package:novalith/Models/Utils/Colors.dart';
 import 'package:novalith/Models/Utils/Utils.dart';
 
+// A custom text field widget for selecting a date
 class CustomTextDateChooser extends StatelessWidget {
+  // UI properties
   double height = 5.0;
   String hint;
   IconData icon;
@@ -35,6 +37,7 @@ class CustomTextDateChooser extends StatelessWidget {
   Widget build(BuildContext context) {
     return Wrap(
       children: [
+        // Display label if provided
         (label != null)
             ? Padding(
                 padding: const EdgeInsets.only(bottom: 5.0),
@@ -47,26 +50,34 @@ class CustomTextDateChooser extends StatelessWidget {
                 ),
               )
             : const SizedBox.shrink(),
+
+        // Container for the text field
         Container(
           decoration: BoxDecoration(
               color: backgroundColor, borderRadius: BorderRadius.circular(5.0)),
           padding: EdgeInsets.symmetric(vertical: height, horizontal: 10.0),
           child: Row(
             children: [
+              // Display icon if available
               (isIconAvailable == true)
                   ? Icon(
                       icon,
                       color: iconColor,
                     )
                   : const SizedBox.shrink(),
+              
+              // Date picker text field
               Flexible(
                   child: TextFormField(
                 onTap: () async {
                   DateTime date = DateTime(1900);
-                  FocusScope.of(context).requestFocus(FocusNode());
+                  FocusScope.of(context).requestFocus(FocusNode()); // Remove focus from the field
+
+                  // Show date picker dialog
                   DatePicker.showDatePicker(context,
                       showTitleActions: true,
                       maxTime: DateTime.now(), onChanged: (DateTime date) {
+                    // Update text field with selected date
                     controller.text = CustomUtils.formatDate(date);
                   }, onConfirm: (date) {
                     controller.text = CustomUtils.formatDate(date);
