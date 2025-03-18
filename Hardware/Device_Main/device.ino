@@ -112,37 +112,294 @@ unsigned long getTime() {
   return now;
 }
 void setup() {
-  Serial.begin(115200);
-  pinMode(AD8232_SIGNAL, INPUT);
-  pinMode(LO_PLUS, INPUT);
-  pinMode(LO_MINUS, INPUT);
+  Serial.begin(9600);
+  pinMode(33, INPUT); // Leads off detection LO +
+  pinMode(32, INPUT); // Leads off detection LO -
+  pressure_sensor.begin(DOUT_Pin, SCK_Pin);
+  Wire.begin(21, 22); // I2C pins for ESP32 (SDA: 21, SCL: 22)
 
-  tft.begin();
-  tft.setRotation(3);
-  tft.fillScreen(ILI9341_BLACK);
-  tft.setTextColor(ILI9341_WHITE);
-  tft.setTextSize(2);
-  tft.setCursor(10, 10);
-  tft.print("ECG Monitor");
+  if (!ads.begin()) {
+    Serial.println("Failed to initialize ADS1115!");
+    while (1);
+  }
+
+  ads.setGain(GAIN_ONE); // Gain = 1 (±4.096V input range)
+
+  if (!particleSensor.begin()) //Use default I2C port, 400kHz speed //Wire, I2C_SPEED_FAST
+  {
+    Serial.println("MAX30102 was not found. Please check wiring/power. ");
+    while (1);
+  }
+  Serial.println("Place your index finger on the sensor with steady pressure.");
+
+  particleSensor.setup(); //Configure sensor with default settings
+  particleSensor.setPulseAmplitudeRed(0x0A); //Turn Red LED to low to indicate sensor is running
+  particleSensor.setPulseAmplitudeGreen(0); //Turn off Green LED
+
+  if (!mlx.begin()) {
+    Serial.println("Error connecting to MLX sensor. Check wiring.");
+    while (1);
+  };
+
+  initWiFi();
+  configTime(0, 0, ntpServer);
+
+  // Assign the api key (required)
+  config.api_key = API_KEY;
+
+  // Assign the user sign in credentials
+  auth.user.email = USER_EMAIL;
+  auth.user.password = USER_PASSWORD;
+
+  // Assign the RTDB URL (required)
+ 
+
+  // Assign the callback function for the long running token generation task */
+  config.token_status_callback = tokenStatusCallback; //see addons/TokenHelper.h
+
+  // Assign the maximum retry of token generation
+  config.max_token_generation_retry = 5;
+
+  // Initialize the library with the Firebase authen and config
+  
+
+  // Getting the user UID might take a few seconds
+  Serial.println("Getting User UID");
+  while ((auth.token.uid) == "") {
+    Serial.print('.');
+    delay(1000);
+  }
+  // Print user UID
+  uid = auth.token.uid.c_str();
+  Serial.print("User UID: ");
+  Serial.println(uid);
+}
+<<<<<<< HEAD
+<<<<<<< HEAD
+void readTempbody() {
+  bodytemp = mlx.readObjectTempC();
+  Serial.print("Object = ");
+  Serial.print(mlx.readObjectTempC());
+  Serial.println("*C");
+
+  Firebase.RTDB.setString(&fbdo, liveData + "/body_temp", bodytemp);
+  delay(100);
+=======
+=======
+>>>>>>> 6fa9f3ff6dd185994ba6744b6a13b29388cccedd
+
+// Function to read raw ADC value
+int readSensorRaw(uint8_t channel) {
+  return ads.readADC_SingleEnded(channel);
+<<<<<<< HEAD
+>>>>>>> ee19f59d28b3d9b79cec5fedc2ed81720ca66c29
+=======
+>>>>>>> 6fa9f3ff6dd185994ba6744b6a13b29388cccedd
+}
+
+// Function to convert raw ADC value to percentage (0 - 100%)
+float mapToPercentage(int rawValue) {
+  float percentage = (rawValue / 26480.0) * 100.0;
+  return constrain(percentage, 0, 100); // Ensures values stay within 0-100%
+}
+
+void loop() {
+
+  timestamp = getTime();
+  timestamp = timestamp + "000";
+
+  if ((millis() - lastTime) > timerDelay) {
+    dbData();
+    lastTime = millis();
+  }
+  if ((millis() - lastTime2) > timerDelay2) {
+    historyData();
+    Firebase.RTDB.setString(&fbdo, liveData + "/isNew", "true");
+    lastTime2 = millis();
+  }
+
+  currentMillis = millis();
+
+  // Start a new reading session every 5 minutes
+  if (!readingActive && (currentMillis - lastReadTime >= READ_INTERVAL)) {
+    readingActive = true;
+    readStartTime = currentMillis;
+    Serial.println("Starting heart rate reading...");
+  }
+
+  if (!readingActive2 && (currentMillis - lastReadTime2 >= READ_INTERVAL2)) {
+    readingActive2 = true;
+    readStartTime2 = currentMillis;
+    Serial.println("Starting ecg heart rate reading...");
+  }
+
+  if (readingActive2) {
+    ecg();
+  }
+
+  // If reading is active, continue for 1 minute
+  if (readingActive) {
+    max30102Read();
+  }
+  Readpressure();
+  readTempbody();
+
+  int raw1 = readSensorRaw(0);
+  int raw2 = readSensorRaw(1);
+  int raw3 = readSensorRaw(2);
+  int raw4 = readSensorRaw(3);
+
+  percent1 = mapToPercentage(raw1);
+  percent2 = mapToPercentage(raw2);
+  percent3 = mapToPercentage(raw3);
+  percent4 = mapToPercentage(raw4);
+
+  if (percent1 < percent_avg && sta1 == 0) {
+    sta1 == 1;
+    kicks_count++;
+  } else if (percent1 > percent_avg && sta1 == 1) {
+    sta1 == 0;
+  }
+  if (percent2 < percent_avg && sta2 == 0) {
+    sta2 == 1;
+    kicks_count++;
+  } else if (percent2 > percent_avg && sta2 == 1) {
+    sta2 == 0;
+  }
+  if (percent3 < percent_avg && sta3 == 0) {
+    sta3 == 1;
+    kicks_count++;
+  } else if (percent3 > percent_avg && sta3 == 1) {
+    sta3 == 0;
+  }
+  if (percent4 < percent_avg && sta4 == 0) {
+    sta4 == 1;
+    kicks_count++;
+  } else if (percent4 > percent_avg && sta4 == 1) {
+    sta4 == 0;
+  }
+
+  if (millis() - kick_previousMillis >= kick_interval) {
+    kick_previousMillis = millis();
+    Firebase.RTDB.setString(&fbdo, liveData + "/kicks_count", kicks_count);
+    delay(200);
+    kicks_count = 0;
+    Serial.println("Kicks count reset to 0");
+  }
+
+  Serial.print("Sensor 1: "); Serial.print(percent1); Serial.print("% | ");
+  Serial.print("Sensor 2: "); Serial.print(percent2); Serial.print("% | ");
+  Serial.print("Sensor 3: "); Serial.print(percent3); Serial.print("% | ");
+  Serial.print("Sensor 4: "); Serial.print(percent4); Serial.println("%");
+
+  Firebase.RTDB.setString(&fbdo, liveData + "/pressure1", percent1);
+  delay(100);
+  Firebase.RTDB.setString(&fbdo, liveData + "/pressure2", percent2);
+  delay(100);
+  Firebase.RTDB.setString(&fbdo, liveData + "/pressure3", percent3);
+  delay(100);
+  Firebase.RTDB.setString(&fbdo, liveData + "/pressure4", percent4);
+  delay(100);
+
+}
+
+
+}
+void Readpressure() {
+  blood_pressure = pressure_sensor.mmHg();
+
+  Firebase.RTDB.setString(&fbdo, liveData + "/blood_pressure", blood_pressure);
+  delay(100);
+
+  if (pressure_sensor.is_ready()) {
+    Serial.print("Pressure (kPa): ");
+    Serial.println(pressure_sensor.pascal());
+  } else {
+    Serial.println("Pressure sensor not found.");
+  }
+
+  Serial.print("ATM: ");
+  Serial.println(pressure_sensor.atm());
+  Serial.print("mmHg: ");
+  Serial.println(pressure_sensor.mmHg());
+  Serial.print("PSI: ");
+  Serial.println(pressure_sensor.psi());
+
+
 }
 void readTempbody() {
-  if (millis() - lastReadTime >= READ_INTERVAL) {
-    lastReadTime = millis();
-    float ambientTemp = mlx.readAmbientTempC();
-    float bodyTemp = mlx.readObjectTempC();
-    Serial.print("Ambient Temp: ");
-    Serial.print(ambientTemp);
-    Serial.print(" C, Body Temp: ");
-    Serial.print(bodyTemp);
-    Serial.println(" C");
-    
-    Firebase.RTDB.setFloat(&fbdo, liveData + "/ambient_temp", ambientTemp);
-    Firebase.RTDB.setFloat(&fbdo, liveData + "/body_temp", bodyTemp);
-  }
+ 
 }
+
 void max30102Read() {
 
+  irValue = particleSensor.getIR();
+
+  if (irValue < 50000) {
+    Serial.print(" No finger?");
+    readingActive = false;
+    lastReadTime = currentMillis;
+  } else {
+    b = true;
+    delay(2000);
+
+  }
+  while (b) {
+
+    currentMillis = millis();
+
+    // Stop reading after 1 minute
+    if (currentMillis - readStartTime >= READ_DURATION) {
+      readingActive = false;
+      b = false;
+      lastReadTime = currentMillis;
+      Serial.println("Heart rate reading completed.");
+    }
+
+    irValue = particleSensor.getIR();
+
+    if (checkForBeat(irValue) == true)
+    {
+      //We sensed a beat!
+      long delta = millis() - lastBeat;
+      lastBeat = millis();
+
+      beatsPerMinute = 60 / (delta / 1000.0);
+
+      if (beatsPerMinute < 255 && beatsPerMinute > 20)
+      {
+        rates[rateSpot++] = (byte)beatsPerMinute; //Store this reading in the array
+        rateSpot %= RATE_SIZE; //Wrap variable
+
+        //Take average of readings
+        beatAvg = 0;
+        for (byte x = 0 ; x < RATE_SIZE ; x++)
+          beatAvg += rates[x];
+        beatAvg /= RATE_SIZE;
+      }
+    }
+
+    Serial.print("IR=");
+    Serial.print(irValue);
+    Serial.print(", BPM=");
+    Serial.print(beatsPerMinute);
+    Serial.print(", Avg BPM=");
+    Serial.print(beatAvg);
+
+
+    if (irValue < 50000) {
+      Serial.print(" No finger?");
+      b = false;
+    }
+    Serial.println();
+  }
+
+  Serial.println();
+  Firebase.RTDB.setString(&fbdo, liveData + "/heart_rate", beatAvg);
+  delay(100);
 }
+
+
 void ecg() {
 
   while (readingActive2) {
@@ -155,48 +412,46 @@ void ecg() {
       Serial.println("ECG Heart rate reading completed.");
     }
 
-    if (ecgValue > ECG_THRESHOLD && (ecgValue - lastECGValue) > SPIKE_THRESHOLD) {
+    // Check if leads are off
+    if ((digitalRead(33) == 1) || (digitalRead(32) == 1)) {
+      Serial.println("Leads off! No heart rate calculated.");
+      bpm = 0;  // Reset BPM to avoid false readings
+      delay(500);  // Slow down the loop to avoid spam
+      return;
+    }
+
+    // Collect multiple samples and compute average ECG value
+    int sumECG = 0;
+
+    
+
+    for (int i = 0; i < SAMPLE_SIZE; i++) {
+      sumECG += analogRead(ECG_PIN);
+      delayMicroseconds(500); // Short delay between readings to reduce noise
+    }
+    int avgECG = sumECG / SAMPLE_SIZE;  // Compute average of collected samples
+
+    // Apply moving average filter
+    ecgBuffer[bufferIndex] = avgECG;
+    bufferIndex = (bufferIndex + 1) % MOVING_AVG_SIZE;
+    int filteredECG = getMovingAverage();
+
+    // Determine dynamic threshold
+    static int maxECG = 0;
+    if (filteredECG > maxECG) {
+      maxECG = filteredECG;
+    }
+    int threshold = maxECG * THRESHOLD_FACTOR;
+
+    // Detect R-peaks and calculate BPM
+    if (filteredECG > threshold) {
       unsigned long currentTime = millis();
-      unsigned long timeDiff = currentTime - lastPeakTime;
-
-      if (timeDiff > 300) {
-          int heartRate = 60000 / timeDiff;
-          
-          // Store the value in the buffer
-          heartRateBuffer[bufferIndex] = heartRate;
-          bufferIndex = (bufferIndex + 1) % 5;
-
-          // Calculate rolling average BPM
-          int avgHeartRate = 0;
-          for (int i = 0; i < 5; i++) {
-              avgHeartRate += heartRateBuffer[i];
-          }
-          avgHeartRate /= 5;
-
-          Serial.print("Average Heart Rate: ");
-          Serial.print(avgHeartRate);
-          Serial.println(" BPM");
-
-          lastPeakTime = currentTime;
-          
-        if (digitalRead(LO_PLUS) == HIGH || digitalRead(LO_MINUS) == HIGH) {
-          Serial.println("WARNING: Leads Off!");
-        }
-
-        delay(DELAY_TIME);
-
-        if (digitalRead(LO_PLUS) == HIGH || digitalRead(LO_MINUS) == HIGH) {
-          Serial.println("WARNING: Leads Off!");
-          tft.fillRect(10, 70, 200, 20, ILI9341_BLACK); // Clear previous warning
-          tft.setCursor(10, 70);
-          tft.setTextColor(ILI9341_RED);
-          tft.print("WARNING: Leads Off!");
-          tft.setTextColor(ILI9341_WHITE);
-      } else {
-          tft.fillRect(10, 70, 200, 20, ILI9341_BLACK); // Clear warning if leads are on
+      if (currentTime - lastPeakTime > 300) {  // Ignore noise (minimum 300ms gap)
+        unsigned long rrInterval = currentTime - lastPeakTime;
+        lastPeakTime = currentTime;
+        bpm = 60000.0 / rrInterval; // Convert RR interval to BPM
       }
-      }
-  }
+    }
 
     // Print data
     Serial.print("ECG: ");
@@ -220,6 +475,7 @@ int getMovingAverage() {
   return sum / MOVING_AVG_SIZE;
 }
 void historyData() {
+<<<<<<< HEAD
   void historyData() {
     /*add the other measurements here such as the blood pressure,
      body temperature */
@@ -232,10 +488,38 @@ void historyData() {
     Serial.printf("Set json... %s\n", Firebase.RTDB.setJSON(&fbdo, DB_history.c_str(), &json) ? "ok" : fbdo.errorReason().c_str());
   }
   
+=======
+  DB_history = History + "/" + String(timestamp);
+  json.set("/Prediction", Prediction);
+  json.set("/blood_pressure", String(blood_pressure));
+  json.set("/body_temp", String(bodytemp));
+  json.set("/ecg", String(bpm));
+  json.set("/heart_rate", String(beatAvg));
+  json.set("/kicks_count", String(kicks_count));
+  json.set("/pressure1", String(percent1));
+  json.set("/pressure2", String(percent2));
+  json.set("/pressure3", String(percent3));
+  json.set("/pressure4", String(percent4));
+  json.set("/timestamp", String(timestamp));
+  Serial.printf("Set json... %s\n", Firebase.RTDB.setJSON(&fbdo, DB_history.c_str(), &json) ? "ok" : fbdo.errorReason().c_str());
+
+>>>>>>> dev-branch-hardware
 }
+
 void dbData() {
-  
+  if (Firebase.RTDB.getString(&fbdo, liveData + "/Prediction")) {
+    if (fbdo.dataType() == "string") {
+      Prediction = fbdo.stringData();
+    }
+  }
+  else {
+    Serial.println(fbdo.errorReason());
+  } 
 }
 void notify() {
+  Firebase.RTDB.setBool(&fbdo, notification + "/isNew", true);
+  delay(200);
+  Firebase.RTDB.setString(&fbdo, notification + "/message", Notify_Message);
+  delay(200);
   
 }
