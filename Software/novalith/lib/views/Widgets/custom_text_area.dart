@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:novalith/Models/Utils/Colors.dart';
 
 class CustomTextAreaFormField extends StatelessWidget {
+  // Height of the form field
   double height = 5.0;
   String hint;
   IconData icon;

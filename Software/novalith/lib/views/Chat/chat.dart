@@ -15,7 +15,9 @@ import 'package:novalith/Models/Utils/Routes.dart';
 import 'package:novalith/Models/Utils/Utils.dart';
 import 'package:novalith/Views/Widgets/custom_text_area.dart';
 
+// Chat screen widget
 class Chat extends StatefulWidget {
+  // Selected user for the chat
   final String selectedUser;
 
   const Chat({super.key, required this.selectedUser});
@@ -27,13 +29,15 @@ class Chat extends StatefulWidget {
 class _ChatState extends State<Chat> {
   final double topSpace = displaySize.width * 0.4;
 
+  // Loading state of the chat screen
   bool isLoading = true;
 
   final TextEditingController _messageController = TextEditingController();
-
+  // Focus node for the message text field
   FocusNode focusNode = FocusNode();
   ScrollController scrollController = ScrollController();
 
+  // List of chat messages
   List<Widget> chatList = [];
 
   final ChatController _chatController = ChatController();
@@ -47,13 +51,13 @@ class _ChatState extends State<Chat> {
   @override
   void initState() {
     super.initState();
-    refreshChat();
+    refreshChat(); // Refresh chat data on initialization
   }
 
   @override
   void dispose() {
     if (listener != null) {
-      listener!.cancel();
+      listener!.cancel(); // Cancel the database listener when disposing
     }
     super.dispose();
   }
@@ -98,11 +102,13 @@ class _ChatState extends State<Chat> {
                                     color: colorWhite,
                                   ),
                                 ),
+                                // Chat title
                                 Text(
                                   "Chat",
                                   style:
                                       TextStyle(fontSize: 16.0, color: color7),
                                 ),
+                                // Refresh button
                                 GestureDetector(
                                   onTap: () async {
                                     setState(() {
@@ -118,6 +124,7 @@ class _ChatState extends State<Chat> {
                             ),
                           ),
                         )),
+                    // chat message list
                     Expanded(
                         flex: 1,
                         child: SingleChildScrollView(
@@ -141,6 +148,7 @@ class _ChatState extends State<Chat> {
                                   ],
                           ),
                         )),
+                    // Message input section
                     Expanded(
                         flex: 0,
                         child: Padding(
@@ -209,7 +217,7 @@ class _ChatState extends State<Chat> {
               )),
         ));
   }
-
+  // Build a message bubble widget for a chat message
   Widget getMessageBubble(ChatModel chatRecord) {
     print(chatRecord.from);
 
@@ -260,12 +268,14 @@ class _ChatState extends State<Chat> {
   getDateTime(DateTime dateTime) {
     return DateFormat('yyyy-MM-dd HH:mm:ss').format(dateTime);
   }
-
+  // Refreshes the chat message form Firebase
   refreshChat() async {
+    // If the scroll controller is attached to a widget, scroll to the bottom.
     if (scrollController.hasClients) {
       scrollController.animateTo(scrollController.position.minScrollExtent,
           duration: const Duration(milliseconds: 100), curve: Curves.ease);
     } else {
+      // If the scroll controller is not attached, set up a database listener.
       listener = _databaseReference
           .child(FirebaseStructure.users)
           .child(CustomUtils.loggedInUser!.uid!)
@@ -276,10 +286,13 @@ class _ChatState extends State<Chat> {
         chatList.clear();
 
         if (mounted) {
+          // Check if the widget is still in the widget tree.
           setState(() {
             for (DataSnapshot element in event.snapshot.children) {
+              // Iterate through the children of the snapshot.
               Map data = element.value as Map;
               chatList.add(getMessageBubble(ChatModel(
+                // Create a ChatModel object and add it to the chat list.
                   id: element.key,
                   datetime: data['datetime'],
                   from: data['from'],
