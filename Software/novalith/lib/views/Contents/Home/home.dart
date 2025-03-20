@@ -18,18 +18,18 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-   final _scaffoldKey = GlobalKey<ScaffoldState>();
+   final _scaffoldKey = GlobalKey<ScaffoldState>(); // Key for scaffold to control drawer
 
-  final DatabaseReference _databaseReference = FirebaseDatabase.instance.ref();
+  final DatabaseReference _databaseReference = FirebaseDatabase.instance.ref(); // Firebase Database reference
 
-  dynamic dataLive;
+  dynamic dataLive; // Store live data from Firebase
 
-  List<ChartData> ecgdata = [];
+  List<ChartData> ecgdata = []; // Store ECG chart data
 
   @override
   void initState() {
-    initNotifications();
-    getData();
+    initNotifications(); // Initialize notifications
+    getData(); // Fetch live data
     super.initState();
   }
 
@@ -39,7 +39,7 @@ class _HomeState extends State<Home> {
       key: _scaffoldKey,
         resizeToAvoidBottomInset: false,
         backgroundColor: colorPrimary,
-        drawer: HomeDrawer(),
+        drawer: HomeDrawer(), // Side navigation drawer
         body: SafeArea(
           child: SizedBox(
               width: displaySize.width,
@@ -49,6 +49,7 @@ class _HomeState extends State<Home> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // AppBar Section
                     Expanded(
                         flex: 0,
                         child: Container(
@@ -67,6 +68,7 @@ class _HomeState extends State<Home> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
+                                // Drawer Button
                                 GestureDetector(
                                   onTap: () => (_scaffoldKey
                                           .currentState!.isDrawerOpen)
@@ -86,6 +88,7 @@ class _HomeState extends State<Home> {
                                       style: TextStyle(
                                           fontSize: 16.0, color: colorWhite),
                                     )),
+                                // Refresh Button    
                                 GestureDetector(
                                   onTap: () {
                                     getData();
@@ -99,31 +102,34 @@ class _HomeState extends State<Home> {
                             ),
                           ),
                         )),
+                    // Main Content Section
                     Expanded(
                         child: SingleChildScrollView(
                       child: Padding(
-                        padding: EdgeInsets.symmetric(
+                        padding: const EdgeInsets.symmetric(
                             vertical: 20.0, horizontal: 10.0),
                         child: (dataLive != null)
                             ? Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
+                                  // greeting Text
                                   Text(
                                     'Hello, ${CustomUtils.loggedInUser!.name!}',
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                         fontSize: 24,
                                         fontWeight: FontWeight.bold),
                                   ),
-                                  SizedBox(height: 8),
+                                  const SizedBox(height: 8),
                                   Text(
                                     DateFormat('EEEE, MMMM d')
                                         .format(DateTime.now()),
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                         fontSize: 16, color: Colors.grey),
                                   ),
-                                  SizedBox(height: 24),
+                                  const SizedBox(height: 24),
+                                  // Current Status Card
                                   Container(
-                                    padding: EdgeInsets.all(16),
+                                    padding: const EdgeInsets.all(16),
                                     decoration: BoxDecoration(
                                       color: Colors.white,
                                       borderRadius: BorderRadius.circular(12),
@@ -136,7 +142,7 @@ class _HomeState extends State<Home> {
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
                                           children: [
-                                            Text(
+                                            const Text(
                                               'Current Status',
                                               style: TextStyle(
                                                   fontSize: 18,
@@ -157,7 +163,7 @@ class _HomeState extends State<Home> {
                                           ],
                                         ),
                                         Container(
-                                          padding: EdgeInsets.all(8),
+                                          padding: const EdgeInsets.all(8),
                                           decoration: BoxDecoration(
                                             shape: BoxShape.circle,
                                             color: (dataLive['Prediction']
@@ -179,11 +185,12 @@ class _HomeState extends State<Home> {
                                       ],
                                     ),
                                   ),
-                                  SizedBox(height: 24),
+                                  const SizedBox(height: 24),
                                   Row(
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,
                                     children: [
+                                      // Health Data Cards 
                                       _buildDataCard(
                                         icon: Icons.favorite_border,
                                         title: 'Fetal Heart Rate',
@@ -198,7 +205,7 @@ class _HomeState extends State<Home> {
                                       ),
                                     ],
                                   ),
-                                  SizedBox(height: 16),
+                                  const SizedBox(height: 16),
                                   Row(
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,
@@ -217,9 +224,9 @@ class _HomeState extends State<Home> {
                                       ),
                                     ],
                                   ),
-                                  if (ecgdata.isNotEmpty) SizedBox(height: 16),
+                                  if (ecgdata.isNotEmpty) const SizedBox(height: 16),
                                   if (ecgdata.isNotEmpty) getECGDataWidget(),
-                                  SizedBox(height: 16),
+                                  const SizedBox(height: 16),
                                   Row(
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,
@@ -232,7 +239,7 @@ class _HomeState extends State<Home> {
                                       )
                                     ],
                                   ),
-                                  SizedBox(height: 16),
+                                  const SizedBox(height: 16),
                                   Row(
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,
@@ -251,7 +258,7 @@ class _HomeState extends State<Home> {
                                       ),
                                     ],
                                   ),
-                                  SizedBox(height: 16),
+                                  const SizedBox(height: 16),
                                   Row(
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,
@@ -289,8 +296,8 @@ class _HomeState extends State<Home> {
   }) {
     return Expanded(
       child: Container(
-        padding: EdgeInsets.all(16),
-        margin: EdgeInsets.symmetric(horizontal: 4),
+        padding: const EdgeInsets.all(16),
+        margin: const EdgeInsets.symmetric(horizontal: 4),
         decoration: BoxDecoration(
           color: Colors.white,
           //border: Border.all(color: colorPrimary),
@@ -300,15 +307,15 @@ class _HomeState extends State<Home> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Icon(icon, color: Colors.grey[600]),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
               title,
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
               value,
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             Text(
               unit,
@@ -337,6 +344,7 @@ class _HomeState extends State<Home> {
     return weekOfMonth;
   }
 
+  // Initialize and listen for notifications
   void initNotifications() {
     AwesomeNotifications().isNotificationAllowed().then((isAllowed) {
       if (!isAllowed) {
@@ -364,6 +372,8 @@ class _HomeState extends State<Home> {
       }
     });
   }
+
+  // Fetch real-time data from Firebase
   Future<void> getData() async {
     _databaseReference
         .child(FirebaseStructure.livedata)

@@ -18,17 +18,20 @@ class Users extends StatefulWidget {
 }
 
 class _UsersState extends State<Users> {
+  // Global key for the scaffold
   final _scaffoldKey = GlobalKey<ScaffoldState>();
 
   final double topSpace = displaySize.width * 0.4;
 
+  // Database reference for Firebase
   final DatabaseReference _databaseReference = FirebaseDatabase.instance.ref();
-
+  
+  // List to store user data.
   List<dynamic> list = [];
 
   @override
   void initState() {
-    getData();
+    getData(); // Fetch user data on initialization
     super.initState();
   }
 
@@ -63,6 +66,7 @@ class _UsersState extends State<Users> {
                               color: colorWhite,
                             ),
                           ),
+                          // Title based on the logged-in user's type.
                           Text(
                             CustomUtils.loggedInUser!.type == LoggedUser.doctor
                                 ? 'Patients'
@@ -88,6 +92,7 @@ class _UsersState extends State<Users> {
               const SizedBox(
                 height: 5.0,
               ),
+              // User list section.
               Expanded(
                   flex: 1,
                   child: Container(
@@ -103,6 +108,7 @@ class _UsersState extends State<Users> {
                         child: Column(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
+                              // Loop through the user list and create cards
                               for (var rec in list)
                                 Card(
                                     shape: RoundedRectangleBorder(
@@ -177,7 +183,7 @@ class _UsersState extends State<Users> {
           )),
     ));
   }
-
+  // Fetches user data from Firebase based on the logged-in user's type 
   Future<void> getData() async {
     _databaseReference
         .child(FirebaseStructure.users)
@@ -194,7 +200,7 @@ class _UsersState extends State<Users> {
       setState(() {});
     });
   }
-
+  // Formats a timestamp into a readable date and time string
   String getDateTime(int mills) {
     return DateFormat('yyyy/MM/dd hh:mm a')
         .format(DateTime.fromMillisecondsSinceEpoch(mills));
