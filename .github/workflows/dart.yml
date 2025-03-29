@@ -3,7 +3,7 @@
 # separate terms of service, privacy policy, and support
 # documentation.
 
-name: Dart
+name: Dart (Windows)
 
 on:
   push:
@@ -13,7 +13,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
       - uses: actions/checkout@v4
@@ -26,7 +26,7 @@ jobs:
 
       - name: Install dependencies
         run: dart pub get
-        working-directory: Software\novalith
+        working-directory: Software/novalith
 
       # Uncomment this step to verify the use of 'dart format' on each commit.
       # - name: Verify formatting
