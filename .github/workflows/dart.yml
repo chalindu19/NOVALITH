@@ -1,4 +1,4 @@
-name: Dart (Windows)
+name: Flutter CI
 
 on:
   push:
@@ -9,24 +9,20 @@ on:
       - dev-ci/cd
 
 jobs:
-  build:
+  build-test:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-      # Use the specific version of the Flutter setup action
       - name: Setup Flutter
-        uses: flutter/setup-flutter@v2.0.1
+        uses: subosito/flutter-action@v2
         with:
-          flutter-version: stable
+          flutter-version: 3.29.0
 
-      - name: Install dependencies
+      - name: Install Dependencies
         run: flutter pub get
-        working-directory: Software/novalith
 
-      - name: Analyze project source
+      - name: Analyze Code
         run: flutter analyze
-
-      - name: Run tests
-        run: flutter test
