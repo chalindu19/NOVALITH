@@ -27,4 +27,3 @@ jobs:
 
       - name: Analyze Code
         run: flutter analyze
-        working-directory: Software/novalith
