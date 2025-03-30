@@ -1,4 +1,3 @@
-
 name: Dart (Windows)
 
 on:
@@ -16,9 +15,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Setup Flutter (Required for Flutter projects)
+      # Use the official Flutter setup action
       - name: Setup Flutter
-        uses: subosito/flutter-action@v2
+        uses: flutter/setup-flutter@v2
         with:
           flutter-version: stable
 
