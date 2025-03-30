@@ -15,9 +15,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Use the official Flutter setup action
+      # Use the specific version of the Flutter setup action
       - name: Setup Flutter
-        uses: flutter/setup-flutter@v2
+        uses: flutter/setup-flutter@v2.0.1
         with:
           flutter-version: stable
 
