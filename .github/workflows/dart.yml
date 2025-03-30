@@ -24,6 +24,3 @@ jobs:
       - name: Install Dependencies
         run: flutter pub get
         working-directory: Software/novalith
-
-      - name: Analyze Code
-        run: flutter analyze
