@@ -1,2 +1,2 @@
 # NOVALITH
-Main GitRepo of Amor Developer Group
+The Smart Pregnancy Belly Wrap is an innovative healthcare project designed to support expectant mothers by providing real-time health monitoring and comfort. This IoT-based wearable device integrates multiple sensors to track vital signs such as fetal heart rate, maternal body temperature, and movement. The collected data is transmitted via Bluetooth and Wi-Fi to a mobile app or cloud system, enabling doctors and caregivers to monitor the mother and baby’s well-being remotely. The project aims to enhance prenatal care by offering timely insights, ensuring both safety and convenience for pregnant women.
